@@ -14,6 +14,7 @@
     "@atproto/identity": "^0.5.20",
     "@atproto/lex-password-session": "^0.3.0",
     "@atproto/syntax": "^0.7.7",
+    "@homeward/lexicons": "workspace:*",
     "next": "^16.4.2",
     "next-intl": "^4.14.9",
     "react": "^19.3.1",

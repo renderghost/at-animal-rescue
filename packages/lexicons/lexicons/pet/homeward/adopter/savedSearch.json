@@ -1,0 +1,47 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.adopter.savedSearch",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "PRIVATE. A named set of discovery filters.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 1000, "maxGraphemes": 100 },
+          "species": {
+            "type": "array",
+            "maxLength": 12,
+            "items": { "type": "ref", "ref": "pet.homeward.defs#species" }
+          },
+          "sizes": {
+            "type": "array",
+            "maxLength": 4,
+            "items": { "type": "ref", "ref": "pet.homeward.defs#size" }
+          },
+          "ageGroups": {
+            "type": "array",
+            "maxLength": 3,
+            "items": { "type": "ref", "ref": "pet.homeward.defs#ageGroup" }
+          },
+          "sexes": {
+            "type": "array",
+            "maxLength": 3,
+            "items": { "type": "string", "maxLength": 32 }
+          },
+          "bondedOnly": { "type": "boolean" },
+          "maxKm": { "type": "integer", "minimum": 1, "maximum": 5000 },
+          "hideConflicts": { "type": "boolean" },
+          "sort": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["bestMatch", "nearest", "newest"]
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
