@@ -1,0 +1,140 @@
+# Homeward — MVP specification
+
+Working name: **Homeward**. Status: agreed scope, pre-build. Last updated 2026-10-22.
+
+Homeward is an app on the AT Protocol (the Atmosphere) that helps animal rescue organisations rehome animals and helps people find a suitable animal to adopt.
+
+## 1. Purpose
+
+- **Rescue organisations** get animals online quickly, with structured, searchable details, and get found by suitable adopters.
+- **Adopters** find animals anywhere on the network that fit their home, household and means, and can see at a glance why an animal does or doesn't fit.
+- **Ethics first:** privacy by default, transparency over authority, alignment with EU law (GDPR, DSA, the EU dog and cat welfare and traceability regulation).
+
+## 2. Scope
+
+### In the MVP
+
+| Area | Decision |
+|---|---|
+| Users | Rescue organisations and adopters. Individuals rehoming their own pets are **out of scope**. |
+| Auth | Bluesky **app passwords** (no OAuth yet). Any PDS. Full account passwords are rejected. |
+| New accounts | Guided link-out to **Eurosky** sign-up, then app-password creation, then return. |
+| Staff access | One shared atproto account per organisation; each staff member uses their own app password, revocable individually. |
+| Species | Dogs, cats, rabbits, small pets, plus "Other" with free text. Detailed breed lists for dogs and cats. |
+| Listings | A listing references **1..n animals**. Bonded animals are flagged "must be adopted together". |
+| Listing status | Draft → Available → Reserved → Adopted ("happy ending", stays on profile) / Withdrawn. |
+| Media | Photos as blobs on the org's PDS, resized client-side. Video by link (YouTube, Vimeo, PeerTube). |
+| Matching | Three states per criterion (**Match / Conflict / Unknown**). Each criterion is marked *required* or *preferred*. Summary: *Strong match / Possible match / Conflicts*. No opaque score. |
+| Criteria | Household, home and space, care and time, logistics (see §5). |
+| Location | Org: town/region shown publicly, coarse coordinates used for distance search. Adopter: private, used only for their own "within X km" searches. |
+| Discovery | Network-wide search and filter. Org profile with filterable listings. Saved searches (private). |
+| Contact | "Enquire" button opens the adopter's email client, or the org's preferred social profile, with a prefilled message and a **revocable, time-limited link** to the adopter's private profile. We store no message content. No in-app chat. |
+| Donations | Link out to the org's existing one-off and recurring donation pages. No payment handling. |
+| Adoption fee | Displayed per listing (amount, currency, kind: donation, fee or none). |
+| Transparency | Facts, never a "verified" badge: domain handle, Bluesky verification records, email-domain match (one-time code), self-declared charity registration with a link to the official register. |
+| Org gating | Open sign-up. An org's first listings are **held for review** before they appear in discovery. |
+| Compliance | Microchip/registration fields (number private), DSA report-a-listing with an admin queue and statement of reasons, GDPR basics (privacy notice, cookie-free analytics, export/delete), welfare content rules in the editor. |
+| Bluesky | Optional cross-post when a listing is published (post with link card). |
+| Language | British English, i18n-ready: all strings externalised, locale-aware units and currency. |
+
+### Phase 2 (next)
+
+Bluesky custom feed of adoptable animals · migration of private data to atproto **Spaces** · OAuth · integrated donations (Stripe Connect) · individuals rehoming · additional languages · listing updates/news timeline · alerts on saved searches.
+
+### Out of scope
+
+Private messaging · payments · individuals offering animals · native mobile apps.
+
+## 3. Architecture
+
+```
+Browser ──► apps/web (Next.js, BFF) ──► user's PDS (writes via app-password session)
+                 │
+                 ├──► Postgres + PostGIS (index, private store, sessions, moderation)
+                 │
+apps/indexer ◄── Jetstream (pet.homeward.* collections) ──► Postgres
+```
+
+- **Monorepo** (pnpm workspaces):
+  - `apps/web`: Next.js App Router. UI plus a server-side BFF.
+  - `apps/indexer`: Node Jetstream consumer and backfill.
+  - `packages/lexicons`: lexicon JSON plus generated TypeScript.
+  - `packages/matching`: a pure, tested matching function shared by server and client.
+  - `packages/db`: Drizzle schema and migrations.
+- **Data residency:** EU-native hosting (Hetzner, Scaleway or Clever Cloud) via Docker Compose. EU processors only, including email (e.g. Scaleway TEM or Brevo).
+
+### Sessions (app passwords)
+
+1. Resolve the handle to a DID and the DID to a PDS, then call `com.atproto.server.createSession` on that PDS.
+2. **Never store the app password.** Store the access and refresh JWTs encrypted at rest, server-side, keyed to an httpOnly, SameSite=Lax session cookie.
+3. Inspect the token scope and **reject** full-access (non-app-password) logins, with guidance on creating an app password.
+4. Logout deletes the session server-side. Users can also revoke the app password in their PDS settings.
+
+### Public vs private data
+
+ATProto repositories are public. The split is therefore:
+
+| Data | Where |
+|---|---|
+| Org profile, animals, listings, photos | Org's PDS (public records) |
+| Adopter public profile: species sought, region, short bio | Adopter's PDS (optional, coarse) |
+| Adopter household: children, other pets, home, time, experience; precise location; saved searches | **Private store** (our EU Postgres, encrypted at rest) |
+| Microchip numbers | Private store (org-only) |
+| Share links, moderation, reports, email-verification codes | Our Postgres |
+
+**Spaces-ready private store.** Private data is modelled as atproto-shaped records with their own lexicons (e.g. `pet.homeward.adopter.household`). It sits behind a `PrivateStore` interface (`get/put/delete/list` by DID + collection + rkey). The MVP implementation is Postgres. When [atproto Spaces](https://atproto.com/blog/atproto-spaces-alpha) stabilises, a second implementation writes the same records into a permissioned repo on the user's own PDS, and a migration moves them there. We don't build against the Spaces alpha now: it is explicitly not production-ready and breaking changes are expected.
+
+Matching badges are computed for the adopter from their own private data. The adopter publishes nothing in order to get matches.
+
+## 4. Lexicons (draft, namespace `pet.homeward.*`)
+
+> NSID authority requires controlling the domain `homeward.pet`, or whichever domain we choose. **No production records until the domain is secured.**
+
+- `pet.homeward.org.profile` (rkey `self`): name, description, avatar/banner (reuse `app.bsky.actor.profile` where possible), location {town, region, country, coarse geo}, contact {preferred: email | bluesky | url, email, url}, donationLinks[] {label, url, kind: oneOff | recurring}, charityRegistration {registry, number, registerUrl}, adoptionProcess (text).
+- `pet.homeward.animal`: name, species, breeds[], mixed, sex, birthDate {value, estimated}, size, colours, neutered, vaccinated, microchipped (bool), health {conditions, medication, notes}, temperament traits[], story, photos[] (blob + alt, alt text required), videoLinks[].
+- `pet.homeward.listing`: animals[] (strongRef), bonded (bool), status, criteria[] {key, value, level: required | preferred}, adoptionFee {amount, currency, kind}, locationOverride, crossPostUri, publishedAt.
+- `pet.homeward.adopter.profile` (rkey `self`, public, optional): seeking {species[], sizes[], ages[]}, region {country, region}, about.
+- Private store: `pet.homeward.adopter.household`, `pet.homeward.adopter.location`, `pet.homeward.adopter.savedSearch`, `pet.homeward.animal.identification` (microchip number, registry).
+
+## 5. Matching criteria (MVP set)
+
+| Group | Listing criterion | Adopter attribute |
+|---|---|---|
+| Household | Children OK (min age) · OK with dogs / cats / small animals · adults-only home · first-time owners OK | Children and youngest age · other pets · experience |
+| Home and space | Home type (flat OK / house only) · garden required (secure) · rural/urban · stairs · landlord permission | Home type · garden · setting · stairs · tenure/permission |
+| Care and time | Max time alone · experience level · ongoing medical care · special diet · behavioural support | Typical hours alone · experience · willing to provide medical, diet or behavioural care |
+| Logistics | Max adoption distance/region · home visit required · several visits needed · adoption fee | Location (private) · accepts home visit · can visit · budget |
+
+Evaluation: each criterion resolves to Match, Conflict or Unknown. A *required* Conflict gives the summary **Conflicts**. All required criteria matched and no preferred conflicts gives **Strong match**. Anything else gives **Possible match**. Every badge explains itself ("Needs adults-only home — you said: children aged 7").
+
+## 6. Trust, safety and compliance
+
+- **Transparency panel** on org profiles. Each signal states what was checked and how, e.g. "Handle controlled by example.org (DNS)", "Verified by @bsky.app", "Contact email confirmed at @example.org", "Self-declared: Charity No. 123456 — check the register ↗".
+- **Review queue:** listings from orgs with fewer than N approved listings stay `pending` in our index (not in discovery) until an admin approves them. Admins are configured by DID.
+- **DSA notice and action:** report a listing (reason + details) → admin queue → action (hide from index) → statement of reasons emailed to the org.
+- **Welfare rules:** shown in the editor and enforced where possible (e.g. minimum age for puppies and kittens, no for-profit sale language, fee framed as donation or fee).
+- **GDPR:** privacy notice, no tracking cookies, cookie-free analytics, export and deletion of private-store data, deletion cascade when a user deletes their records from the PDS.
+- **EU dog and cat regulation:** microchip/registration fields now, so later listing-time registration verification can slot in.
+
+## 7. Delivery
+
+- Milestones: **MVP** and **Phase 2**. Epics are parent issues with sub-issues.
+- Each issue gets a `feature/<issue#>-<slug>` branch from `main` and its own PR, reviewed and merged by the product owner.
+- Proposed epics, in order:
+  1. Foundations: monorepo, CI, Docker Compose, i18n, design tokens.
+  2. Lexicons and data model.
+  3. Auth.
+  4. Indexer/AppView and search API.
+  5. Organisation experience.
+  6. Listings.
+  7. Adopter experience and matching.
+  8. Trust, safety and compliance.
+  9. EU deployment.
+
+## 8. Open items
+
+- [ ] Secure the domain (`homeward.pet` or alternative) and check trademark conflicts.
+- [ ] Contact Eurosky about the partnership and a deep-link sign-up flow.
+- [ ] Legal entity acting as data controller and DSA point of contact.
+- [ ] Welfare guidelines reviewed by a rescue or veterinary expert.
+- [ ] Review threshold N for new orgs (proposed: 3 approved listings).
