@@ -127,7 +127,11 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2
 
-  packages/matching: {}
+  packages/matching:
+    dependencies:
+      '@homeward/lexicons':
+        specifier: workspace:*
+        version: link:../lexicons
 
 packages:
 
