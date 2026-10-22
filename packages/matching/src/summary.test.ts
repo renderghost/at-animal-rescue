@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { summarise } from './index';
+import { summarise } from './summary';
 
 describe('summarise', () => {
   it('is conflicts when a required criterion conflicts', () => {
