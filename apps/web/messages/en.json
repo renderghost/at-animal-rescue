@@ -321,5 +321,47 @@
     "whyHeading": "Why an app password?",
     "whyBody": "An app password lets Homeward publish listings and keep your profile up to date without ever seeing your main password. It can't change your password, email or account settings. You can revoke it at any time in your account settings, and Homeward loses access. Homeward refuses main passwords.",
     "opensInNewTab": "(opens in a new tab)"
+  },
+  "Welcome": {
+    "title": "Welcome to Homeward",
+    "intro": "How will you use Homeward? Choose the one that fits.",
+    "orgHeading": "We're a rescue organisation",
+    "orgBody": "Publish animals in need of a home, with clear adoption criteria. Your profile and listings are public and live in your own account.",
+    "orgAction": "Set up our organisation",
+    "adopterHeading": "I'm looking to adopt",
+    "adopterBody": "Find animals that suit your home. Details about your household stay private: Homeward stores them encrypted and never publishes them.",
+    "adopterAction": "Start looking",
+    "org": {
+      "title": "Set up your organisation",
+      "intro": "This is your public profile. It's published to your own account on the Atmosphere, so it stays yours. You can add more details later.",
+      "displayName": "Organisation name",
+      "locality": "Town or city",
+      "localityHint": "Shown on your profile and used for distance search. Never your street address.",
+      "region": "County, province or state (optional)",
+      "country": "Country",
+      "countryChoose": "Choose a country",
+      "preferred": "How should adopters contact you?",
+      "preferredEmail": "Email",
+      "preferredBluesky": "Bluesky (your account)",
+      "preferredWebsite": "Our website",
+      "email": "Contact email",
+      "website": "Website",
+      "websiteHint": "Must start with https://",
+      "submit": "Publish profile",
+      "submitting": "Publishing…",
+      "publishFailed": "We couldn't publish your profile to your account. Please try again in a moment.",
+      "errors": {
+        "required": "This is required.",
+        "tooLong": "Keep this to 100 characters or fewer.",
+        "invalid": "This doesn't look right. Please check it."
+      }
+    },
+    "done": {
+      "title": "You're all set",
+      "orgBody": "Your organisation profile is published. Next, you'll be able to add animals and create listings.",
+      "adopterBody": "You're ready to start looking. Next, you'll be able to tell us about your home, privately, so we can show how well each animal suits you.",
+      "comingSoon": "These next steps are on their way.",
+      "browse": "Find an animal"
+    }
   }
 }

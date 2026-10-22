@@ -18,5 +18,5 @@ export async function signIn(_previous: SignInState, formData: FormData): Promis
     if (err instanceof LoginError) return { status: 'error', code: err.code, identifier };
     throw err;
   }
-  redirect('/');
+  redirect('/welcome');
 }
