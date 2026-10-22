@@ -34,5 +34,17 @@
     "match": "Match",
     "conflict": "Conflict",
     "unknown": "Not enough information"
+  },
+  "Preferences": {
+    "heading": "Language and region",
+    "hint": "Any language works in any country. Your choices are saved on this device.",
+    "language": "Language",
+    "country": "Country",
+    "countryNotSet": "Not set",
+    "units": "Distances in",
+    "unitsAuto": "Automatic (from country)",
+    "unitsKilometre": "Kilometres",
+    "unitsMile": "Miles",
+    "save": "Save"
   }
 }
