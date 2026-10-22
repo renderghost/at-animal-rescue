@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { NextIntlClientProvider } from 'next-intl';
-import { getLocale, getTranslations } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { PreferencesForm } from '@/components/PreferencesForm';
+import { contentLanguageTag } from '@/i18n/config';
+import { getPreferences } from '@/i18n/preferences';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,11 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const container = 'mx-auto w-full max-w-6xl px-4';
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const locale = await getLocale();
+  const { language } = await getPreferences();
   const t = await getTranslations();
 
   return (
-    <html lang={locale}>
+    <html lang={contentLanguageTag[language]}>
       <body>
         <NextIntlClientProvider>
           <a
@@ -47,7 +50,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             {children}
           </main>
           <footer className="border-t border-line py-8 text-sm text-muted">
-            <div className={container}>
+            <div className={`${container} grid gap-6`}>
+              <PreferencesForm />
               <p>
                 {t('Footer.tagline')} {t('Footer.hostedInEu')}
               </p>
