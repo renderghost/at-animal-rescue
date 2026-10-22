@@ -6,7 +6,9 @@
   "Nav": {
     "label": "Main",
     "discover": "Find an animal",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signedInAs": "Signed in as @{handle}"
   },
   "Footer": {
     "tagline": "Built on the AT Protocol. Your data stays yours.",
@@ -36,7 +38,6 @@
     "submit": "Sign in",
     "submitting": "Signing in…",
     "appPasswordHelp": "How to create an app password",
-    "success": "Signed in as @{handle}. Homeward doesn't keep sessions yet, so you've been signed out again.",
     "errors": {
       "invalidIdentifier": "Enter your handle, for example yourname.eurosky.social.",
       "handleNotFound": "We couldn't find that handle. Check the spelling and try again.",
@@ -45,7 +46,9 @@
       "fullAccessPassword": "That looks like your main account password. For your safety, Homeward only accepts app passwords, and we've ended that sign-in. Create an app password in your account settings and use that instead.",
       "accountUnavailable": "This account has been suspended or deactivated on its server.",
       "serverUnreachable": "We couldn't reach your account's server. Please try again in a moment."
-    }
+    },
+    "newHere": "New to the Atmosphere?",
+    "getStarted": "Get started with a free account"
   },
   "Match": {
     "match": "Match",

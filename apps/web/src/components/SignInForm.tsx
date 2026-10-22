@@ -19,14 +19,6 @@ export function SignInForm() {
 
   return (
     <form action={action} className="max-w-md" noValidate>
-      {state.status === 'success' && (
-        <p
-          role="status"
-          className="mb-6 rounded-md border border-match-line bg-match-soft p-4 text-match"
-        >
-          {t('success', { handle: state.handle })}
-        </p>
-      )}
       <Field
         name="identifier"
         label={t('identifierLabel')}

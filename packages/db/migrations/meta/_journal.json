@@ -15,6 +15,13 @@
       "when": 1792683110546,
       "tag": "0001_private_records",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792701204199,
+      "tag": "0002_sessions",
+      "breakpoints": true
     }
   ]
 }

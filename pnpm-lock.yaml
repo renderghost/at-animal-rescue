@@ -61,6 +61,9 @@ importers:
       '@atproto/syntax':
         specifier: ^0.7.7
         version: 0.7.7
+      '@homeward/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@homeward/lexicons':
         specifier: workspace:*
         version: link:../../packages/lexicons
