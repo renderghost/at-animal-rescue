@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc -p ."
   },
   "dependencies": {
+    "@homeward/lexicons": "workspace:*",
     "next": "^16.4.2",
     "next-intl": "^4.14.9",
     "react": "^19.3.1",
