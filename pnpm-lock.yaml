@@ -49,6 +49,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@atproto-labs/fetch-node':
+        specifier: ^0.4.3
+        version: 0.4.3
+      '@atproto/identity':
+        specifier: ^0.5.20
+        version: 0.5.20
+      '@atproto/lex-password-session':
+        specifier: ^0.3.0
+        version: 0.3.0
+      '@atproto/syntax':
+        specifier: ^0.7.7
+        version: 0.7.7
       next:
         specifier: ^16.4.2
         version: 16.4.2(@babel/core@7.29.7)(@types/node@22.20.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -159,6 +171,10 @@ packages:
     resolution: {integrity: sha512-8bLfOnaoWBmg9S8naqzk5mG8zYAXfSKT4odB5OHcCAd1o7p6RFb0Rk9WGobEgboKtxP2CIeul6mzI5PUT4v6Gg==}
     engines: {node: '>=22'}
 
+  '@atproto/identity@0.5.20':
+    resolution: {integrity: sha512-zjhGn+nG6LD2r9F4dPU17KfU3d6YfOZi1uDcVViOAftdKgEQZsZEX4XmmHU5KzOVJFJwk50JtLwO/s33W5CTmQ==}
+    engines: {node: '>=22'}
+
   '@atproto/lex-builder@0.1.18':
     resolution: {integrity: sha512-O8U8ufEsvldHhtdSKI6AHk0Cd6PF5t7wII/MuptauizvwApn9pNXVtz12VGdlehl0hcK357CNYNvunz5s2thpQ==}
     engines: {node: '>=22'}
@@ -187,6 +203,10 @@ packages:
 
   '@atproto/lex-json@0.1.7':
     resolution: {integrity: sha512-4ABSfAkv+zLiPHvexZ7n/xR8wCLShbpEqcGxvniejZGsFrms980nl+BOaWPuU+OgLRNzpicMwSVOYDF6X62IHg==}
+    engines: {node: '>=22'}
+
+  '@atproto/lex-password-session@0.3.0':
+    resolution: {integrity: sha512-oGB2acwjwEemXyCQiXuq1l4yIkyEYDNp4Wxp2zBKrA0NAJLY2tyD5ywypXLB/l+1fy+JnpXlT8D3G/tkOnnqwg==}
     engines: {node: '>=22'}
 
   '@atproto/lex-resolver@0.4.0':
@@ -2805,6 +2825,12 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
+  '@atproto/identity@0.5.20':
+    dependencies:
+      '@atproto-labs/fetch-node': 0.4.3
+      '@atproto/common-web': 0.5.15
+      '@atproto/crypto': 0.5.7
+
   '@atproto/lex-builder@0.1.18':
     dependencies:
       '@atproto/lex-document': 0.1.14
@@ -2861,6 +2887,12 @@ snapshots:
   '@atproto/lex-json@0.1.7':
     dependencies:
       '@atproto/lex-data': 0.1.8
+      tslib: 2.8.1
+
+  '@atproto/lex-password-session@0.3.0':
+    dependencies:
+      '@atproto/lex-rpc': 0.0.1
+      '@atproto/lex-schema': 0.2.9
       tslib: 2.8.1
 
   '@atproto/lex-resolver@0.4.0':

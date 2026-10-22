@@ -28,7 +28,24 @@
   },
   "SignIn": {
     "title": "Sign in",
-    "comingSoon": "Sign-in with a Bluesky or Eurosky app password is on its way."
+    "intro": "Sign in with your Bluesky or Eurosky account, using an app password.",
+    "identifierLabel": "Your handle",
+    "identifierHint": "For example yourname.eurosky.social or yourname.bsky.social",
+    "passwordLabel": "App password",
+    "passwordHint": "It looks like xxxx-xxxx-xxxx-xxxx. Create one in your account settings. Never use your main password.",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "appPasswordHelp": "How to create an app password",
+    "success": "Signed in as @{handle}. Homeward doesn't keep sessions yet, so you've been signed out again.",
+    "errors": {
+      "invalidIdentifier": "Enter your handle, for example yourname.eurosky.social.",
+      "handleNotFound": "We couldn't find that handle. Check the spelling and try again.",
+      "noPds": "We couldn't find a server for this account.",
+      "invalidCredentials": "That app password doesn't match this account. Check it, or create a new one.",
+      "fullAccessPassword": "That looks like your main account password. For your safety, Homeward only accepts app passwords, and we've ended that sign-in. Create an app password in your account settings and use that instead.",
+      "accountUnavailable": "This account has been suspended or deactivated on its server.",
+      "serverUnreachable": "We couldn't reach your account's server. Please try again in a moment."
+    }
   },
   "Match": {
     "match": "Match",

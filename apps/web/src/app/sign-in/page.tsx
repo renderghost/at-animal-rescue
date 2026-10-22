@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { SignInForm } from '@/components/SignInForm';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('SignIn');
@@ -11,7 +12,8 @@ export default async function SignInPage() {
   return (
     <>
       <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
-      <p>{t('comingSoon')}</p>
+      <p className="mb-8 max-w-prose">{t('intro')}</p>
+      <SignInForm />
     </>
   );
 }
