@@ -11,3 +11,5 @@ export const COLLECTIONS = {
 } as const;
 
 export type Collection = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
+
+export * from './taxonomy';
