@@ -1,74 +1,85 @@
-@import './tokens.css';
+@import 'tailwindcss';
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/*
+ * Design tokens. Tailwind's default palette is removed so only these colours exist.
+ * Colours use light-dark(), so each token is defined once and follows the OS theme;
+ * set data-theme="light" or "dark" on <html> to override it.
+ * Status colours (match, conflict, unknown) are always paired with an icon and text.
+ */
+@theme {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-canvas: light-dark(#fbfaf7, #151412);
+  --color-surface: light-dark(#ffffff, #1e1c1a);
+  --color-sunken: light-dark(#f2efe9, #0f0e0d);
+  --color-fg: light-dark(#1c1b19, #f3f1ec);
+  --color-muted: light-dark(#5b5750, #b4aea4);
+  --color-line: light-dark(#d9d4ca, #3a3631);
+  --color-line-strong: light-dark(#8a8378, #6b655c);
+
+  --color-accent: light-dark(#1f5f4a, #6fcfa8);
+  --color-accent-hover: light-dark(#174a39, #8fdcbc);
+  --color-on-accent: light-dark(#ffffff, #0c2a1f);
+  --color-focus: light-dark(#b45309, #fbbf24);
+  --color-danger: light-dark(#b91c1c, #f87171);
+
+  --color-match: light-dark(#14532d, #bbf7d0);
+  --color-match-soft: light-dark(#dcfce7, #14361f);
+  --color-match-line: light-dark(#86efac, #2f6b42);
+  --color-conflict: light-dark(#7f1d1d, #fecaca);
+  --color-conflict-soft: light-dark(#fee2e2, #3f1414);
+  --color-conflict-line: light-dark(#fca5a5, #7f2a2a);
+  --color-unknown: light-dark(#44403c, #e7e5e4);
+  --color-unknown-soft: light-dark(#f5f5f4, #292524);
+  --color-unknown-line: light-dark(#d6d3d1, #57534e);
+
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+
+  --text-display: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+  --text-display--line-height: 1.15;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-size: var(--font-size-m);
-  line-height: var(--line-height-body);
-}
-
-h1,
-h2,
-h3 {
-  line-height: var(--line-height-heading);
-  margin: 0 0 var(--space-4);
-}
-
-p {
-  margin: 0 0 var(--space-4);
-}
-
-a {
-  color: var(--color-accent);
-  text-underline-offset: 0.15em;
-}
-
-a:hover {
-  color: var(--color-accent-hover);
-}
-
-:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-s);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+@layer base {
+  :root {
+    color-scheme: light dark;
   }
-}
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
 
-.container {
-  width: 100%;
-  max-width: var(--content-width);
-  margin-inline: auto;
-  padding-inline: var(--space-4);
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-canvas font-sans leading-relaxed text-fg;
+  }
+
+  a {
+    @apply text-accent underline underline-offset-[0.15em] hover:text-accent-hover;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

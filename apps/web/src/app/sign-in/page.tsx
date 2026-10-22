@@ -10,7 +10,7 @@ export default async function SignInPage() {
   const t = await getTranslations('SignIn');
   return (
     <>
-      <h1>{t('title')}</h1>
+      <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
       <p>{t('comingSoon')}</p>
     </>
   );
