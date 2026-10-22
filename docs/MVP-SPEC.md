@@ -92,7 +92,7 @@ Matching badges are computed for the adopter from their own private data. The ad
 
 > NSID authority requires controlling the domain `homeward.pet`, or whichever domain we choose. **No production records until the domain is secured.**
 
-- `pet.homeward.org.profile` (rkey `self`): name, description, avatar/banner (reuse `app.bsky.actor.profile` where possible), location {town, region, country, coarse geo}, contact {preferred: email | bluesky | url, email, url}, donationLinks[] {label, url, kind: oneOff | recurring}, charityRegistration {registry, number, registerUrl}, adoptionProcess (text).
+- `pet.homeward.org.profile` (rkey `self`): name, description, avatar/banner (reuse `app.bsky.actor.profile` where possible), location {town, region, country, coarse geo}, contact {preferred: email | bluesky | url, email, url}, donationLinks[] {label, url, kind: oneOff | recurring | both}, charityRegistration {registry, number, registerUrl}, adoptionProcess (text).
 - `pet.homeward.animal`: name, species, breeds[], mixed, sex, birthDate {value, estimated}, size, colours, neutered, vaccinated, microchipped (bool), health {conditions, medication, notes}, temperament traits[], story, photos[] (blob + alt, alt text required), videoLinks[].
 - `pet.homeward.listing`: animals[] (strongRef), bonded (bool), status, criteria[] {key, value, level: required | preferred}, adoptionFee {amount, currency, kind}, locationOverride, crossPostUri, publishedAt.
 - `pet.homeward.adopter.profile` (rkey `self`, public, optional): seeking {species[], sizes[], ages[]}, region {country, region}, about.

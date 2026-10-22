@@ -12,6 +12,7 @@ export async function AccountNav() {
   return (
     <form action={signOut} className="flex flex-wrap items-center gap-3">
       <span className="text-muted">{t('signedInAs', { handle: user.handle })}</span>
+      <Link href="/account">{t('account')}</Link>
       <button
         type="submit"
         className="cursor-pointer text-accent underline underline-offset-[0.15em] hover:text-accent-hover"

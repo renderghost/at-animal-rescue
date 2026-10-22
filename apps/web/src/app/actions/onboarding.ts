@@ -1,26 +1,14 @@
 'use server';
 
 import { toDatetimeString } from '@atproto/syntax';
-import { pet } from '@homeward/lexicons';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/server/auth/session';
 import { getCurrentRole, getRepoClient } from '@/server/onboarding/current-role';
 import {
-  parseOrganisationForm,
-  type FieldError,
-  type OrganisationField,
-  type OrganisationFormValues,
-} from '@/server/onboarding/organisation-form';
+  saveOrganisationProfile,
+  type OrganisationFormState,
+} from '@/server/onboarding/save-profile';
 import { getPrivateStore } from '@/server/private-store';
-
-export type OrganisationFormState =
-  | { status: 'idle' }
-  | {
-      status: 'error';
-      errors: Partial<Record<OrganisationField, FieldError>>;
-      values: OrganisationFormValues;
-      publishFailed?: boolean;
-    };
 
 /** Publishes the organisation profile to the user's own repository. */
 export async function createOrganisation(
@@ -30,22 +18,11 @@ export async function createOrganisation(
   if (!(await getCurrentUser())) redirect('/sign-in');
   if (await getCurrentRole()) redirect('/welcome/done');
 
-  const parsed = parseOrganisationForm(form);
-  if (!parsed.ok) return { status: 'error', errors: parsed.errors, values: parsed.values };
-
   const client = await getRepoClient();
   if (!client) redirect('/sign-in');
-  try {
-    await client.put(pet.homeward.org.profile, parsed.record);
-  } catch {
-    return {
-      status: 'error',
-      errors: {},
-      values: Object.fromEntries(form.entries()) as unknown as OrganisationFormValues,
-      publishFailed: true,
-    };
-  }
-  redirect('/welcome/done');
+  const result = await saveOrganisationProfile(client, form);
+  if (result.status !== 'saved') return result;
+  redirect(result.unlocated ? `/welcome/done?unlocated=${result.unlocated}` : '/welcome/done');
 }
 
 /**
