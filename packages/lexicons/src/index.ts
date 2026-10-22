@@ -13,3 +13,4 @@ export const COLLECTIONS = {
 export type Collection = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
 
 export * from './taxonomy';
+export * from './age';
