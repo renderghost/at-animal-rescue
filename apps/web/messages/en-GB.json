@@ -1,0 +1,38 @@
+{
+  "Common": {
+    "appName": "Homeward",
+    "skipToContent": "Skip to main content"
+  },
+  "Nav": {
+    "label": "Main",
+    "discover": "Find an animal",
+    "signIn": "Sign in"
+  },
+  "Footer": {
+    "tagline": "Built on the AT Protocol. Your data stays yours.",
+    "hostedInEu": "Hosted in the EU."
+  },
+  "Home": {
+    "title": "Every rescue animal deserves the right home",
+    "lead": "Homeward connects rescue organisations with people looking to adopt, with clear information about which animals suit which homes.",
+    "ctaDiscover": "Find an animal",
+    "ctaOrgs": "I'm a rescue organisation",
+    "adopterHeading": "For adopters",
+    "adopterBody": "Tell us about your home and household, privately. We show you at a glance which animals are a strong match, which might work, and why.",
+    "orgHeading": "For rescue organisations",
+    "orgBody": "Get animals online quickly with structured details, photos and adoption criteria. Your listings live in your own account on the Atmosphere."
+  },
+  "Discover": {
+    "title": "Find an animal",
+    "comingSoon": "Search and filters are on their way."
+  },
+  "SignIn": {
+    "title": "Sign in",
+    "comingSoon": "Sign-in with a Bluesky or Eurosky app password is on its way."
+  },
+  "Match": {
+    "match": "Match",
+    "conflict": "Conflict",
+    "unknown": "Not enough information"
+  }
+}
