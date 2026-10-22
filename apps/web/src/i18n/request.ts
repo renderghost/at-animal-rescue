@@ -1,11 +1,11 @@
 import { getRequestConfig } from 'next-intl/server';
-import { defaultLocale } from './config';
+import { getPreferences } from './preferences';
 
-// Single locale for the MVP. Locale negotiation (cookie or Accept-Language) slots in here.
+// Messages follow the language; number and date formatting follow language + country.
 export default getRequestConfig(async () => {
-  const locale = defaultLocale;
+  const { language, formatLocale } = await getPreferences();
   return {
-    locale,
-    messages: (await import(`../../messages/${locale}.json`)).default,
+    locale: formatLocale,
+    messages: (await import(`../../messages/${language}.json`)).default,
   };
 });

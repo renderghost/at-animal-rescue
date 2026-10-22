@@ -1,10 +1,8 @@
-import type messages from '../messages/en-GB.json';
-import type { Locale } from './i18n/config';
+import type messages from '../messages/en.json';
 
-// Type-checks message keys and locales across the app.
+// Type-checks message keys across the app. Locale is a formatting locale (e.g. en-NL).
 declare module 'next-intl' {
   interface AppConfig {
-    Locale: Locale;
     Messages: typeof messages;
   }
 }
