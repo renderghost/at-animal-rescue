@@ -56,4 +56,4 @@ Internal packages are consumed as TypeScript source and have no build step.
 
 ## Contributing
 
-Each GitHub issue gets its own `feature/<issue#>-<slug>` branch from `main` and its own pull request.
+Each GitHub issue gets its own `feature/<issue#>-<slug>` branch from `main` and its own pull request against `main`; PRs are never stacked. See [`CLAUDE.md`](CLAUDE.md) for working conventions.

@@ -13,6 +13,9 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@atproto/common-web": "^0.5.15",
+    "@atproto/syntax": "^0.7.7",
+    "@homeward/lexicons": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "postgres": "^3.4.9"
   },

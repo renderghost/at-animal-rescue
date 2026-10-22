@@ -1,0 +1,82 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.adopter.household",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "PRIVATE. An adopter's household and circumstances, used for matching. Never published to a public repository; stored in Homeward's private store (later an atproto Space). Absent fields mean 'not answered'.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["updatedAt"],
+        "properties": {
+          "children": { "type": "ref", "ref": "#children" },
+          "otherAnimals": {
+            "type": "array",
+            "maxLength": 3,
+            "items": {
+              "type": "string",
+              "maxLength": 32,
+              "knownValues": ["dog", "cat", "smallAnimal"]
+            },
+            "description": "Kinds of animal already in the home. Empty means none."
+          },
+          "experience": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["none", "some", "experienced"]
+          },
+          "homeType": { "type": "string", "maxLength": 32, "knownValues": ["flat", "house"] },
+          "garden": { "type": "ref", "ref": "#garden" },
+          "setting": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["urban", "suburban", "rural"]
+          },
+          "stepFree": {
+            "type": "boolean",
+            "description": "The home can be reached and lived in without stairs."
+          },
+          "tenure": { "type": "string", "maxLength": 32, "knownValues": ["own", "rent"] },
+          "landlordPermission": {
+            "type": "boolean",
+            "description": "Renters only: the landlord allows pets."
+          },
+          "hoursAlone": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 24,
+            "description": "Typical hours a day an animal would be alone."
+          },
+          "willingMedicalCare": { "type": "boolean" },
+          "willingSpecialDiet": { "type": "boolean" },
+          "willingBehaviouralSupport": { "type": "boolean" },
+          "acceptsHomeVisit": { "type": "boolean" },
+          "canVisitSeveralTimes": { "type": "boolean" },
+          "maxFee": {
+            "type": "ref",
+            "ref": "pet.homeward.defs#money",
+            "description": "Most the adopter can pay as an adoption fee or donation."
+          },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "children": {
+      "type": "object",
+      "required": ["present"],
+      "properties": {
+        "present": { "type": "boolean" },
+        "youngestAge": { "type": "integer", "minimum": 0, "maximum": 17 }
+      }
+    },
+    "garden": {
+      "type": "object",
+      "required": ["present"],
+      "properties": {
+        "present": { "type": "boolean" },
+        "secure": { "type": "boolean", "description": "Fully fenced." }
+      }
+    }
+  }
+}

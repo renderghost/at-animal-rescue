@@ -1,0 +1,39 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.animal.identification",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "PRIVATE. Identification details for an animal, visible only to its organisation. The record key equals the animal record's key.",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["animal", "updatedAt"],
+        "properties": {
+          "animal": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "The pet.homeward.animal record this belongs to."
+          },
+          "microchip": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Transponder code, usually 15 digits (ISO 11784/11785)."
+          },
+          "registry": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "Database the chip is registered with."
+          },
+          "passportNumber": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "EU pet passport number, if any."
+          },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
