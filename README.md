@@ -13,6 +13,7 @@ pnpm install
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm dev          # web app on http://localhost:3000
 ```
 
 ## Local services

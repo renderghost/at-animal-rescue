@@ -1,0 +1,67 @@
+/*
+ * Design tokens. Colours use light-dark() so each token is defined once;
+ * set data-theme="light" or "dark" on <html> to override the OS preference.
+ * Status colours are always paired with an icon and text (never colour alone).
+ */
+:root {
+  color-scheme: light dark;
+
+  --color-bg: light-dark(#fbfaf7, #151412);
+  --color-surface: light-dark(#ffffff, #1e1c1a);
+  --color-surface-sunken: light-dark(#f2efe9, #0f0e0d);
+  --color-text: light-dark(#1c1b19, #f3f1ec);
+  --color-text-muted: light-dark(#5b5750, #b4aea4);
+  --color-border: light-dark(#d9d4ca, #3a3631);
+  --color-border-strong: light-dark(#8a8378, #6b655c);
+
+  --color-accent: light-dark(#1f5f4a, #6fcfa8);
+  --color-accent-hover: light-dark(#174a39, #8fdcbc);
+  --color-on-accent: light-dark(#ffffff, #0c2a1f);
+  --color-focus: light-dark(#b45309, #fbbf24);
+
+  --color-match-fg: light-dark(#14532d, #bbf7d0);
+  --color-match-bg: light-dark(#dcfce7, #14361f);
+  --color-match-border: light-dark(#86efac, #2f6b42);
+  --color-conflict-fg: light-dark(#7f1d1d, #fecaca);
+  --color-conflict-bg: light-dark(#fee2e2, #3f1414);
+  --color-conflict-border: light-dark(#fca5a5, #7f2a2a);
+  --color-unknown-fg: light-dark(#44403c, #e7e5e4);
+  --color-unknown-bg: light-dark(#f5f5f4, #292524);
+  --color-unknown-border: light-dark(#d6d3d1, #57534e);
+  --color-danger: light-dark(#b91c1c, #f87171);
+
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-size-s: 0.875rem;
+  --font-size-m: 1rem;
+  --font-size-l: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-size-2xl: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+  --line-height-body: 1.55;
+  --line-height-heading: 1.15;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+  --radius-pill: 999px;
+
+  --focus-ring: 0 0 0 3px var(--color-bg), 0 0 0 5px var(--color-focus);
+  --content-width: 72rem;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
