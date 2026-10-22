@@ -25,3 +25,4 @@ export * from './private-store';
 export * from './session-store';
 export * from './index-store';
 export * from './search';
+export * from './service-state';

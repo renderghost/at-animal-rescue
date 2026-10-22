@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@atproto/common-web": "^0.5.15",
+    "@atproto/lex": "^0.4.2",
     "@atproto/syntax": "^0.7.7",
     "@homeward/lexicons": "workspace:*",
     "drizzle-orm": "^0.45.4",
