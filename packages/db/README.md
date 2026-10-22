@@ -27,6 +27,15 @@ To rotate:
 2. Call `rotateKeys({ cursor })` until the cursor is undefined.
 3. Check `failed` is empty, then remove the old key.
 
+## Public index
+
+`IndexStore` writes validated public records (`pet.homeward.org.profile`, `animal`, `listing`) into `index_*` tables. `searchListings()` serves discovery and organisation pages. Everything here can be rebuilt from the network, and nothing private is stored.
+
+- **Validation:** callers validate records against their lexicons first. The store enforces cross-record rules: a listing only references animals in its own repository, and a listing is only shown if its repository has an organisation profile and at least one indexed animal.
+- **Moderation:** new listings from organisations not yet `trusted` start as `pending` and stay out of discovery until approved (#43). Edits keep the current state.
+- **Location:** each listing gets an effective location (its own override, else its organisation's), kept in sync when either changes. A PostGIS GiST index serves distance search.
+- **Search:** filters for species, size, sex, bonded, status (default available and reserved), organisation and maximum distance. Sorted newest (keyset cursor) or nearest (offset cursor).
+
 ## Migrations
 
 ```sh

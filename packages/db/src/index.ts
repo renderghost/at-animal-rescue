@@ -23,3 +23,5 @@ export function requireDatabaseUrl(): string {
 export * from './crypto';
 export * from './private-store';
 export * from './session-store';
+export * from './index-store';
+export * from './search';
