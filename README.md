@@ -15,6 +15,18 @@ pnpm typecheck
 pnpm test
 ```
 
+## Local services
+
+Requires Docker. Starts Postgres with PostGIS, and Mailpit to catch outgoing email.
+
+```sh
+cp .env.example .env
+pnpm services:up     # waits until healthy
+pnpm db:migrate
+```
+
+Mailpit's inbox is at http://localhost:8025. Stop the services with `pnpm services:down`; add `-v` to `docker compose down` to wipe data.
+
 ## Workspace
 
 | Path                | Purpose                                                    |
@@ -29,15 +41,17 @@ Internal packages are consumed as TypeScript source and have no build step.
 
 ## Scripts
 
-| Command             | What it does                           |
-| ------------------- | -------------------------------------- |
-| `pnpm dev`          | Run every workspace's dev task         |
-| `pnpm build`        | Build every workspace                  |
-| `pnpm lint`         | ESLint across the repo                 |
-| `pnpm typecheck`    | `tsc` in every workspace               |
-| `pnpm test`         | Vitest across the repo                 |
-| `pnpm format`       | Prettier, writing changes              |
-| `pnpm format:check` | Prettier, failing on unformatted files |
+| Command             | What it does                             |
+| ------------------- | ---------------------------------------- |
+| `pnpm dev`          | Run every workspace's dev task           |
+| `pnpm build`        | Build every workspace                    |
+| `pnpm lint`         | ESLint across the repo                   |
+| `pnpm typecheck`    | `tsc` in every workspace                 |
+| `pnpm test`         | Vitest across the repo                   |
+| `pnpm format`       | Prettier, writing changes                |
+| `pnpm format:check` | Prettier, failing on unformatted files   |
+| `pnpm services:up`  | Start local Postgres/PostGIS and Mailpit |
+| `pnpm db:migrate`   | Apply database migrations                |
 
 ## Contributing
 
