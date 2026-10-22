@@ -1,0 +1,252 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.listing",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "One or more animals offered for adoption together, with the criteria a home should meet. Drafts are never published; only listings meant to be public exist as records.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["animals", "status", "createdAt"],
+        "properties": {
+          "animals": {
+            "type": "array",
+            "minLength": 1,
+            "maxLength": 10,
+            "items": { "type": "string", "format": "at-uri" },
+            "description": "pet.homeward.animal records in the same repository as this listing."
+          },
+          "bonded": { "type": "boolean", "description": "The animals must be adopted together." },
+          "title": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "Optional display title, e.g. 'Bonnie and Clyde'. Defaults to the animals' names."
+          },
+          "summary": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 },
+          "status": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["available", "reserved", "adopted", "withdrawn"]
+          },
+          "criteria": {
+            "type": "array",
+            "maxLength": 30,
+            "items": {
+              "type": "union",
+              "refs": [
+                "#childrenCriterion",
+                "#otherAnimalsCriterion",
+                "#experienceCriterion",
+                "#homeTypeCriterion",
+                "#gardenCriterion",
+                "#settingCriterion",
+                "#stepFreeCriterion",
+                "#landlordPermissionCriterion",
+                "#timeAloneCriterion",
+                "#medicalCareCriterion",
+                "#specialDietCriterion",
+                "#behaviouralSupportCriterion",
+                "#distanceCriterion",
+                "#homeVisitCriterion",
+                "#multipleVisitsCriterion"
+              ]
+            }
+          },
+          "adoptionFee": { "type": "ref", "ref": "#adoptionFee" },
+          "location": {
+            "type": "ref",
+            "ref": "pet.homeward.defs#place",
+            "description": "Overrides the organisation's location, e.g. when the animals are in foster care elsewhere."
+          },
+          "crossPost": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Bluesky post announcing this listing."
+          },
+          "adoptedAt": { "type": "string", "format": "datetime" },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "level": {
+      "type": "string",
+      "maxLength": 32,
+      "knownValues": ["required", "preferred"],
+      "description": "Whether a criterion is a requirement or a preference. Unknown values are treated as preferred."
+    },
+    "adoptionFee": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["none", "donation", "fee"],
+          "description": "'donation' is a suggested donation; 'fee' is a fixed adoption fee."
+        },
+        "amount": { "type": "ref", "ref": "pet.homeward.defs#money" }
+      }
+    },
+    "childrenCriterion": {
+      "type": "object",
+      "description": "Whether children may live in the home. allowed=false means an adults-only home.",
+      "required": ["level", "allowed"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "allowed": { "type": "boolean" },
+        "minAge": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17,
+          "description": "Youngest child's minimum age in years, when children are allowed."
+        }
+      }
+    },
+    "otherAnimalsCriterion": {
+      "type": "object",
+      "description": "Whether the animal can live with another kind of animal.",
+      "required": ["level", "animal", "allowed"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "animal": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["dog", "cat", "smallAnimal"]
+        },
+        "allowed": { "type": "boolean" }
+      }
+    },
+    "experienceCriterion": {
+      "type": "object",
+      "description": "Minimum experience needed. 'none' means first-time owners are welcome.",
+      "required": ["level", "minimum"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "minimum": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["none", "some", "experienced"]
+        }
+      }
+    },
+    "homeTypeCriterion": {
+      "type": "object",
+      "required": ["level", "allowed"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "allowed": {
+          "type": "array",
+          "minLength": 1,
+          "items": { "type": "string", "maxLength": 32, "knownValues": ["flat", "house"] }
+        }
+      }
+    },
+    "gardenCriterion": {
+      "type": "object",
+      "description": "A garden is needed. secure=true means it must be fully fenced.",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "secure": { "type": "boolean" }
+      }
+    },
+    "settingCriterion": {
+      "type": "object",
+      "required": ["level", "allowed"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "allowed": {
+          "type": "array",
+          "minLength": 1,
+          "items": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["urban", "suburban", "rural"]
+          }
+        }
+      }
+    },
+    "stepFreeCriterion": {
+      "type": "object",
+      "description": "The animal cannot manage stairs; the home must be step-free.",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" }
+      }
+    },
+    "landlordPermissionCriterion": {
+      "type": "object",
+      "description": "Adopters who rent must have their landlord's permission.",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" }
+      }
+    },
+    "timeAloneCriterion": {
+      "type": "object",
+      "required": ["level", "maxHours"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "maxHours": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 24,
+          "description": "Most hours a day the animal can be left alone."
+        }
+      }
+    },
+    "medicalCareCriterion": {
+      "type": "object",
+      "description": "The animal needs ongoing medical care.",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "description": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 }
+      }
+    },
+    "specialDietCriterion": {
+      "type": "object",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "description": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 }
+      }
+    },
+    "behaviouralSupportCriterion": {
+      "type": "object",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "description": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 }
+      }
+    },
+    "distanceCriterion": {
+      "type": "object",
+      "description": "Adopters must live within this distance of the animal's location.",
+      "required": ["level", "maxKm"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "maxKm": { "type": "integer", "minimum": 1, "maximum": 5000 }
+      }
+    },
+    "homeVisitCriterion": {
+      "type": "object",
+      "description": "A home visit is part of the adoption process.",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" }
+      }
+    },
+    "multipleVisitsCriterion": {
+      "type": "object",
+      "description": "Adopters must visit the animal several times before adoption.",
+      "required": ["level"],
+      "properties": {
+        "level": { "type": "ref", "ref": "#level" },
+        "visits": { "type": "integer", "minimum": 2, "maximum": 20 }
+      }
+    }
+  }
+}

@@ -24,6 +24,13 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Generated lexicon code is up to date
+        run: |
+          pnpm --filter @homeward/lexicons lex:build
+          git diff --exit-code -- packages/lexicons/src/generated || {
+            echo "::error::Run 'pnpm --filter @homeward/lexicons lex:build' and commit the result."
+            exit 1
+          }
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck

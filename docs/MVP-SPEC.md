@@ -14,28 +14,28 @@ Homeward is an app on the AT Protocol (the Atmosphere) that helps animal rescue 
 
 ### In the MVP
 
-| Area | Decision |
-|---|---|
-| Users | Rescue organisations and adopters. Individuals rehoming their own pets are **out of scope**. |
-| Auth | Bluesky **app passwords** (no OAuth yet). Any PDS. Full account passwords are rejected. |
-| New accounts | Guided link-out to **Eurosky** sign-up, then app-password creation, then return. |
-| Staff access | One shared atproto account per organisation; each staff member uses their own app password, revocable individually. |
-| Species | Dogs, cats, rabbits, small pets, plus "Other" with free text. Detailed breed lists for dogs and cats. |
-| Listings | A listing references **1..n animals**. Bonded animals are flagged "must be adopted together". |
-| Listing status | Draft → Available → Reserved → Adopted ("happy ending", stays on profile) / Withdrawn. |
-| Media | Photos as blobs on the org's PDS, resized client-side. Video by link (YouTube, Vimeo, PeerTube). |
-| Matching | Three states per criterion (**Match / Conflict / Unknown**). Each criterion is marked *required* or *preferred*. Summary: *Strong match / Possible match / Conflicts*. No opaque score. |
-| Criteria | Household, home and space, care and time, logistics (see §5). |
-| Location | Org: town/region shown publicly, coarse coordinates used for distance search. Adopter: private, used only for their own "within X km" searches. |
-| Discovery | Network-wide search and filter. Org profile with filterable listings. Saved searches (private). |
-| Contact | "Enquire" button opens the adopter's email client, or the org's preferred social profile, with a prefilled message and a **revocable, time-limited link** to the adopter's private profile. We store no message content. No in-app chat. |
-| Donations | Link out to the org's existing one-off and recurring donation pages. No payment handling. |
-| Adoption fee | Displayed per listing (amount, currency, kind: donation, fee or none). |
-| Transparency | Facts, never a "verified" badge: domain handle, Bluesky verification records, email-domain match (one-time code), self-declared charity registration with a link to the official register. |
-| Org gating | Open sign-up. An org's first listings are **held for review** before they appear in discovery. |
-| Compliance | Microchip/registration fields (number private), DSA report-a-listing with an admin queue and statement of reasons, GDPR basics (privacy notice, cookie-free analytics, export/delete), welfare content rules in the editor. |
-| Bluesky | Optional cross-post when a listing is published (post with link card). |
-| Language | British English, i18n-ready: all strings externalised, locale-aware units and currency. |
+| Area           | Decision                                                                                                                                                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Users          | Rescue organisations and adopters. Individuals rehoming their own pets are **out of scope**.                                                                                                                                             |
+| Auth           | Bluesky **app passwords** (no OAuth yet). Any PDS. Full account passwords are rejected.                                                                                                                                                  |
+| New accounts   | Guided link-out to **Eurosky** sign-up, then app-password creation, then return.                                                                                                                                                         |
+| Staff access   | One shared atproto account per organisation; each staff member uses their own app password, revocable individually.                                                                                                                      |
+| Species        | Dogs, cats, rabbits, small pets, plus "Other" with free text. Detailed breed lists for dogs and cats.                                                                                                                                    |
+| Listings       | A listing references **1..n animals**. Bonded animals are flagged "must be adopted together".                                                                                                                                            |
+| Listing status | Draft → Available → Reserved → Adopted ("happy ending", stays on profile) / Withdrawn.                                                                                                                                                   |
+| Media          | Photos as blobs on the org's PDS, resized client-side. Video by link (YouTube, Vimeo, PeerTube).                                                                                                                                         |
+| Matching       | Three states per criterion (**Match / Conflict / Unknown**). Each criterion is marked _required_ or _preferred_. Summary: _Strong match / Possible match / Conflicts_. No opaque score.                                                  |
+| Criteria       | Household, home and space, care and time, logistics (see §5).                                                                                                                                                                            |
+| Location       | Org: town/region shown publicly, coarse coordinates used for distance search. Adopter: private, used only for their own "within X km" searches.                                                                                          |
+| Discovery      | Network-wide search and filter. Org profile with filterable listings. Saved searches (private).                                                                                                                                          |
+| Contact        | "Enquire" button opens the adopter's email client, or the org's preferred social profile, with a prefilled message and a **revocable, time-limited link** to the adopter's private profile. We store no message content. No in-app chat. |
+| Donations      | Link out to the org's existing one-off and recurring donation pages. No payment handling.                                                                                                                                                |
+| Adoption fee   | Displayed per listing (amount, currency, kind: donation, fee or none).                                                                                                                                                                   |
+| Transparency   | Facts, never a "verified" badge: domain handle, Bluesky verification records, email-domain match (one-time code), self-declared charity registration with a link to the official register.                                               |
+| Org gating     | Open sign-up. An org's first listings are **held for review** before they appear in discovery.                                                                                                                                           |
+| Compliance     | Microchip/registration fields (number private), DSA report-a-listing with an admin queue and statement of reasons, GDPR basics (privacy notice, cookie-free analytics, export/delete), welfare content rules in the editor.              |
+| Bluesky        | Optional cross-post when a listing is published (post with link card).                                                                                                                                                                   |
+| Language       | British English, i18n-ready: all strings externalised, locale-aware units and currency.                                                                                                                                                  |
 
 ### Phase 2 (next)
 
@@ -74,13 +74,13 @@ apps/indexer ◄── Jetstream (pet.homeward.* collections) ──► Postgres
 
 ATProto repositories are public. The split is therefore:
 
-| Data | Where |
-|---|---|
-| Org profile, animals, listings, photos | Org's PDS (public records) |
-| Adopter public profile: species sought, region, short bio | Adopter's PDS (optional, coarse) |
+| Data                                                                                              | Where                                                  |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Org profile, animals, listings, photos                                                            | Org's PDS (public records)                             |
+| Adopter public profile: species sought, region, short bio                                         | Adopter's PDS (optional, coarse)                       |
 | Adopter household: children, other pets, home, time, experience; precise location; saved searches | **Private store** (our EU Postgres, encrypted at rest) |
-| Microchip numbers | Private store (org-only) |
-| Share links, moderation, reports, email-verification codes | Our Postgres |
+| Microchip numbers                                                                                 | Private store (org-only)                               |
+| Share links, moderation, reports, email-verification codes                                        | Our Postgres                                           |
 
 **Spaces-ready private store.** Private data is modelled as atproto-shaped records with their own lexicons (e.g. `pet.homeward.adopter.household`). It sits behind a `PrivateStore` interface (`get/put/delete/list` by DID + collection + rkey). The MVP implementation is Postgres. When [atproto Spaces](https://atproto.com/blog/atproto-spaces-alpha) stabilises, a second implementation writes the same records into a permissioned repo on the user's own PDS, and a migration moves them there. We don't build against the Spaces alpha now: it is explicitly not production-ready and breaking changes are expected.
 
@@ -98,14 +98,14 @@ Matching badges are computed for the adopter from their own private data. The ad
 
 ## 5. Matching criteria (MVP set)
 
-| Group | Listing criterion | Adopter attribute |
-|---|---|---|
-| Household | Children OK (min age) · OK with dogs / cats / small animals · adults-only home · first-time owners OK | Children and youngest age · other pets · experience |
-| Home and space | Home type (flat OK / house only) · garden required (secure) · rural/urban · stairs · landlord permission | Home type · garden · setting · stairs · tenure/permission |
-| Care and time | Max time alone · experience level · ongoing medical care · special diet · behavioural support | Typical hours alone · experience · willing to provide medical, diet or behavioural care |
-| Logistics | Max adoption distance/region · home visit required · several visits needed · adoption fee | Location (private) · accepts home visit · can visit · budget |
+| Group          | Listing criterion                                                                                        | Adopter attribute                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Household      | Children OK (min age) · OK with dogs / cats / small animals · adults-only home · first-time owners OK    | Children and youngest age · other pets · experience                                     |
+| Home and space | Home type (flat OK / house only) · garden required (secure) · rural/urban · stairs · landlord permission | Home type · garden · setting · stairs · tenure/permission                               |
+| Care and time  | Max time alone · experience level · ongoing medical care · special diet · behavioural support            | Typical hours alone · experience · willing to provide medical, diet or behavioural care |
+| Logistics      | Max adoption distance/region · home visit required · several visits needed · adoption fee                | Location (private) · accepts home visit · can visit · budget                            |
 
-Evaluation: each criterion resolves to Match, Conflict or Unknown. A *required* Conflict gives the summary **Conflicts**. All required criteria matched and no preferred conflicts gives **Strong match**. Anything else gives **Possible match**. Every badge explains itself ("Needs adults-only home — you said: children aged 7").
+Evaluation: each criterion resolves to Match, Conflict or Unknown. A _required_ Conflict gives the summary **Conflicts**. All required criteria matched and no preferred conflicts gives **Strong match**. Anything else gives **Possible match**. Every badge explains itself ("Needs adults-only home — you said: children aged 7").
 
 ## 6. Trust, safety and compliance
 

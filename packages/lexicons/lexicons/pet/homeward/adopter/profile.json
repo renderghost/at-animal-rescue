@@ -1,0 +1,41 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.adopter.profile",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Optional public profile of someone looking to adopt. Deliberately coarse: household details and precise location are kept private and never published here.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["createdAt"],
+        "properties": {
+          "seeking": { "type": "ref", "ref": "#seeking" },
+          "area": { "type": "ref", "ref": "pet.homeward.defs#area" },
+          "about": { "type": "string", "maxLength": 10000, "maxGraphemes": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "seeking": {
+      "type": "object",
+      "properties": {
+        "species": {
+          "type": "array",
+          "maxLength": 12,
+          "items": { "type": "ref", "ref": "pet.homeward.defs#species" }
+        },
+        "sizes": {
+          "type": "array",
+          "maxLength": 4,
+          "items": { "type": "ref", "ref": "pet.homeward.defs#size" }
+        },
+        "ageGroups": {
+          "type": "array",
+          "maxLength": 3,
+          "items": { "type": "ref", "ref": "pet.homeward.defs#ageGroup" }
+        }
+      }
+    }
+  }
+}

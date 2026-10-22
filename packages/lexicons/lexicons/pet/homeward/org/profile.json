@@ -1,0 +1,91 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.org.profile",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Public profile of an animal rescue organisation. Its presence marks the account as an organisation on Homeward.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["displayName", "location", "contact", "createdAt"],
+        "properties": {
+          "displayName": { "type": "string", "maxLength": 1000, "maxGraphemes": 100 },
+          "description": { "type": "string", "maxLength": 30000, "maxGraphemes": 3000 },
+          "avatar": {
+            "type": "blob",
+            "accept": ["image/jpeg", "image/png", "image/webp"],
+            "maxSize": 1000000
+          },
+          "banner": {
+            "type": "blob",
+            "accept": ["image/jpeg", "image/png", "image/webp"],
+            "maxSize": 2000000
+          },
+          "location": { "type": "ref", "ref": "pet.homeward.defs#place" },
+          "contact": { "type": "ref", "ref": "#contact" },
+          "donationLinks": {
+            "type": "array",
+            "maxLength": 10,
+            "items": { "type": "ref", "ref": "#donationLink" }
+          },
+          "charityRegistration": { "type": "ref", "ref": "#charityRegistration" },
+          "adoptionProcess": {
+            "type": "string",
+            "maxLength": 30000,
+            "maxGraphemes": 3000,
+            "description": "How adoption works at this organisation."
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "description": "How adopters should get in touch. 'bluesky' means the organisation's own account.",
+      "required": ["preferred"],
+      "properties": {
+        "preferred": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["email", "bluesky", "website"]
+        },
+        "email": { "type": "string", "maxLength": 254 },
+        "website": { "type": "string", "format": "uri", "maxLength": 2000 }
+      }
+    },
+    "donationLink": {
+      "type": "object",
+      "required": ["url", "kind"],
+      "properties": {
+        "label": { "type": "string", "maxLength": 1000, "maxGraphemes": 100 },
+        "url": { "type": "string", "format": "uri", "maxLength": 2000 },
+        "kind": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["oneOff", "recurring", "both"]
+        }
+      }
+    },
+    "charityRegistration": {
+      "type": "object",
+      "description": "Self-declared registration with an official charity register. Shown as self-declared with a link to check it.",
+      "required": ["registry", "number"],
+      "properties": {
+        "registry": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 100,
+          "description": "Name of the register, e.g. 'Charity Commission for England and Wales'."
+        },
+        "number": { "type": "string", "maxLength": 64 },
+        "registerUrl": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2000,
+          "description": "Link to the entry in the official register."
+        }
+      }
+    }
+  }
+}

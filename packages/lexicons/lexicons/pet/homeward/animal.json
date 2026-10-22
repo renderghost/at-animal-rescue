@@ -1,0 +1,96 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.animal",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "An animal cared for by a rescue organisation. Published in the organisation's repository and referenced by listings. Identification numbers (e.g. microchip) are never stored here.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "species", "createdAt"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 1000, "maxGraphemes": 100 },
+          "species": { "type": "ref", "ref": "pet.homeward.defs#species" },
+          "speciesDetail": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "Free text when species is 'other', e.g. 'tortoise'."
+          },
+          "breeds": {
+            "type": "array",
+            "maxLength": 3,
+            "items": { "type": "string", "maxLength": 1000, "maxGraphemes": 100 },
+            "description": "Breed keys from the Homeward taxonomy, or free text."
+          },
+          "mixedBreed": { "type": "boolean" },
+          "sex": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["male", "female", "unknown"]
+          },
+          "birth": { "type": "ref", "ref": "#birth" },
+          "size": { "type": "ref", "ref": "pet.homeward.defs#size" },
+          "colours": {
+            "type": "array",
+            "maxLength": 5,
+            "items": { "type": "string", "maxLength": 640, "maxGraphemes": 64 }
+          },
+          "neutered": { "type": "boolean", "description": "Absent means unknown." },
+          "vaccinated": { "type": "boolean", "description": "Absent means unknown." },
+          "microchipped": {
+            "type": "boolean",
+            "description": "Absent means unknown. The chip number itself is kept private."
+          },
+          "health": { "type": "ref", "ref": "#health" },
+          "traits": {
+            "type": "array",
+            "maxLength": 20,
+            "items": { "type": "string", "maxLength": 64 },
+            "description": "Temperament trait keys from the Homeward taxonomy."
+          },
+          "story": { "type": "string", "maxLength": 50000, "maxGraphemes": 5000 },
+          "photos": {
+            "type": "array",
+            "maxLength": 12,
+            "items": { "type": "ref", "ref": "pet.homeward.defs#image" },
+            "description": "The first photo is the cover photo."
+          },
+          "videos": {
+            "type": "array",
+            "maxLength": 6,
+            "items": { "type": "string", "format": "uri", "maxLength": 2000 },
+            "description": "Links to hosted videos (e.g. PeerTube, Vimeo, YouTube)."
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "birth": {
+      "type": "object",
+      "required": ["date"],
+      "properties": {
+        "date": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 10,
+          "description": "ISO 8601 date: YYYY, YYYY-MM or YYYY-MM-DD."
+        },
+        "estimated": { "type": "boolean" }
+      }
+    },
+    "health": {
+      "type": "object",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "maxLength": 20,
+          "items": { "type": "string", "maxLength": 1000, "maxGraphemes": 100 }
+        },
+        "medication": { "type": "string", "maxLength": 10000, "maxGraphemes": 1000 },
+        "notes": { "type": "string", "maxLength": 20000, "maxGraphemes": 2000 }
+      }
+    }
+  }
+}
