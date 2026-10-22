@@ -1,0 +1,27 @@
+{
+  "lexicon": 1,
+  "id": "pet.homeward.adopter.location",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "PRIVATE. Where an adopter lives, used only for their own distance search and distance criteria. Coordinates are rounded to 2 decimal places (about 1 km): enough for matching, no more (data minimisation).",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["latitude", "longitude", "country", "updatedAt"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "What the adopter typed, e.g. a town or postcode district."
+          },
+          "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+          "latitude": { "type": "string", "maxLength": 12 },
+          "longitude": { "type": "string", "maxLength": 12 },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

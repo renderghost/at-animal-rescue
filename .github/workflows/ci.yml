@@ -16,6 +16,22 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: homeward
+          POSTGRES_PASSWORD: homeward
+          POSTGRES_DB: homeward
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U homeward -d homeward"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    env:
+      DATABASE_URL: postgres://homeward:homeward@localhost:5432/homeward
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -34,5 +50,6 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm db:migrate
       - run: pnpm test
       - run: pnpm build
