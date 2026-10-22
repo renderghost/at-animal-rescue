@@ -12,6 +12,7 @@
   "dependencies": {
     "@atproto-labs/fetch-node": "^0.4.3",
     "@atproto/identity": "^0.5.20",
+    "@atproto/lex": "^0.4.2",
     "@atproto/lex-password-session": "^0.3.0",
     "@atproto/syntax": "^0.7.7",
     "@homeward/db": "workspace:*",

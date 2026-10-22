@@ -55,6 +55,9 @@ importers:
       '@atproto/identity':
         specifier: ^0.5.20
         version: 0.5.20
+      '@atproto/lex':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@atproto/lex-password-session':
         specifier: ^0.3.0
         version: 0.3.0
