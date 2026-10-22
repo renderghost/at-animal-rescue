@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { AccountNav } from '@/components/AccountNav';
 import { PreferencesForm } from '@/components/PreferencesForm';
 import { contentLanguageTag } from '@/i18n/config';
 import { getPreferences } from '@/i18n/preferences';
@@ -35,12 +36,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 {t('Common.appName')}
               </Link>
               <nav aria-label={t('Nav.label')}>
-                <ul className="flex flex-wrap gap-4">
+                <ul className="flex flex-wrap items-center gap-4">
                   <li>
                     <Link href="/discover">{t('Nav.discover')}</Link>
                   </li>
                   <li>
-                    <Link href="/sign-in">{t('Nav.signIn')}</Link>
+                    <AccountNav />
                   </li>
                 </ul>
               </nav>

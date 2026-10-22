@@ -26,3 +26,24 @@ export const privateRecords = pgTable(
     index('private_records_key_id_idx').on(t.keyId),
   ],
 );
+
+/**
+ * Signed-in sessions. The browser holds a random token; only its SHA-256 hash is stored,
+ * so a database leak yields no usable cookies. The PDS session (access and refresh
+ * tokens) is encrypted at rest with the private-store keyring.
+ */
+export const sessions = pgTable(
+  'sessions',
+  {
+    tokenHash: text('token_hash').primaryKey(),
+    did: text().notNull(),
+    handle: text().notNull(),
+    keyId: text('key_id').notNull(),
+    iv: bytea().notNull(),
+    ciphertext: bytea().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [index('sessions_did_idx').on(t.did), index('sessions_expires_at_idx').on(t.expiresAt)],
+);
