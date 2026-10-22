@@ -46,5 +46,23 @@
     "unitsKilometre": "Kilometres",
     "unitsMile": "Miles",
     "save": "Save"
+  },
+  "GetStarted": {
+    "title": "Get started",
+    "intro": "Homeward runs on the Atmosphere, the open network behind Bluesky. Your account and your listings belong to you, not to us.",
+    "haveAccountHeading": "Already on Bluesky or another Atmosphere app?",
+    "haveAccountBody": "You can use your existing account, wherever it is hosted. Skip to step 2.",
+    "step1Heading": "1. Create a free account with Eurosky",
+    "step1Body": "Eurosky hosts accounts in Europe, under European law. Your handle will look like yourname.eurosky.social. Rescue organisations can later use their own website address as their handle.",
+    "step1Action": "Create an account at Eurosky",
+    "step2Heading": "2. Create an app password",
+    "step2Body": "Sign in to the Bluesky app. If your account is with Eurosky, choose a custom hosting provider and enter {provider}. Then go to Settings → Privacy and security → App passwords, and create one called \"Homeward\".",
+    "step2Action": "Open app passwords in Bluesky",
+    "step3Heading": "3. Sign in to Homeward",
+    "step3Body": "Use your handle and the app password you just created.",
+    "step3Action": "Sign in",
+    "whyHeading": "Why an app password?",
+    "whyBody": "An app password lets Homeward publish listings and keep your profile up to date without ever seeing your main password. It can't change your password, email or account settings. You can revoke it at any time in your account settings, and Homeward loses access. Homeward refuses main passwords.",
+    "opensInNewTab": "(opens in a new tab)"
   }
 }

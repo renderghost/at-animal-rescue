@@ -16,7 +16,7 @@ export default async function HomePage() {
         <p className="text-xl text-muted">{t('Home.lead')}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <ButtonLink href="/discover">{t('Home.ctaDiscover')}</ButtonLink>
-          <ButtonLink href="/sign-in" variant="secondary">
+          <ButtonLink href="/get-started" variant="secondary">
             {t('Home.ctaOrgs')}
           </ButtonLink>
         </div>
