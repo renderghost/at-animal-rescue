@@ -7,6 +7,10 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "lex:build": "lex build --lexicons ./lexicons --out ./src/generated --clear --index-file --import-ext \"\""
+  },
+  "dependencies": {
+    "@atproto/lex": "^0.4.2"
   }
 }
