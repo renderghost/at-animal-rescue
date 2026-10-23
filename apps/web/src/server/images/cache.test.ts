@@ -8,15 +8,15 @@ const dirs: string[] = [];
 afterEach(async () => {
   for (const dir of dirs.splice(0)) await rm(dir, { recursive: true, force: true });
 });
-async function newCache(maxBytes: number) {
+async function newDir() {
   const dir = await mkdtemp(join(tmpdir(), 'homeward-images-'));
   dirs.push(dir);
-  return new ImageCache(dir, maxBytes);
+  return dir;
 }
 
 describe('ImageCache', () => {
   it('stores, returns and deletes files', async () => {
-    const cache = await newCache(1_000_000);
+    const cache = new ImageCache(await newDir(), 1_000_000);
     await cache.put('did:plc:a/bafy/400', Buffer.from('small'));
     expect(await cache.get('did:plc:a/bafy/400')).toEqual(Buffer.from('small'));
     expect(await cache.get('did:plc:a/bafy/800')).toBeUndefined();
@@ -25,11 +25,13 @@ describe('ImageCache', () => {
   });
 
   it('removes the least recently used files when over its cap', async () => {
-    const cache = await newCache(250);
+    // Filled through a roomy cache: put() prunes in the background, and with a small cap
+    // that could run mid-test and remove a file with the same timestamp as "old".
+    const dir = await newDir();
+    const roomy = new ImageCache(dir, 1_000_000);
     const file = Buffer.alloc(100);
-    await cache.put('old', file);
-    await cache.put('used', file);
-    await cache.put('new', file);
+    for (const key of ['old', 'used', 'new']) await roomy.put(key, file);
+    const cache = new ImageCache(dir, 250);
     // Make "old" and "used" older than "new", then use "used" again.
     const past = new Date(Date.now() - 60_000);
     for (const key of ['old', 'used']) {
