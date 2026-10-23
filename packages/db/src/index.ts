@@ -26,5 +26,6 @@ export * from './session-store';
 export * from './index-store';
 export * from './orgs';
 export * from './org-facts';
+export * from './email-confirmations';
 export * from './search';
 export * from './service-state';

@@ -581,6 +581,38 @@
     "factDomainHttps": "Checked through the domain's website on {date}.",
     "factVerified": "Verified on Bluesky by {issuer} on {date}.",
     "factChecked": "Still valid on {date}.",
-    "factVerifier": "See the verifier"
+    "factVerifier": "See the verifier",
+    "factEmail": "Its contact email, at {domain}, was confirmed on {date}.",
+    "factEmailHandle": "That's also the domain of its handle.",
+    "factEmailWebsite": "That's also the domain of the website it lists.",
+    "factEmailBoth": "That's also the domain of its handle and of the website it lists."
+  },
+  "EmailConfirmation": {
+    "heading": "Confirm your contact email",
+    "intro": "Confirming your contact email adds a dated fact to your public page, so adopters know messages reach you. We send a 6-digit code to the address. The email contains no links.",
+    "changedFirst": "Changed your email? Save your profile first, then confirm the new address.",
+    "confirmedUntil": "Confirmed on {date}. It counts until {until}, or until you change the address.",
+    "notConfirmed": "Not confirmed yet.",
+    "noEmail": "Add a contact email to your profile first.",
+    "send": "Send a code to my contact email",
+    "sendAgain": "Send a new code",
+    "code": "Code from the email",
+    "codeHint": "6 digits. It lasts 15 minutes.",
+    "confirm": "Confirm",
+    "sent": "We've sent a code to {email}. It lasts 15 minutes.",
+    "confirmed": "Your contact email is confirmed. Your public page now says so.",
+    "errors": {
+      "rateLimited": "You've asked for several codes in the last hour. You can ask again after {time}.",
+      "wrong": "That code doesn't match. Check the latest email and try again.",
+      "expired": "That code has expired. Send a new one.",
+      "tooManyAttempts": "Too many wrong tries for that code. Send a new one.",
+      "noCode": "There is no code waiting for this address. Send a new one.",
+      "sendFailed": "We couldn't send the email just now. Please try again in a moment.",
+      "noEmail": "Add a contact email to your profile first.",
+      "unavailable": "We couldn't reach your account just now. Please try again in a moment."
+    },
+    "mailSubject": "Your Homeward confirmation code: {code}",
+    "mailBody": "Your Homeward confirmation code is {code}.\n\nEnter it on your organisation profile page to confirm this contact email. It lasts 15 minutes.\n\nIf you didn't ask for this, you can ignore this email: nothing changes unless the code is entered.\n\nHomeward will never ask you to click a link or share this code.",
+    "confirmAgain": "Confirm again"
   }
 }

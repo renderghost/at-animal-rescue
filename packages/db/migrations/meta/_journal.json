@@ -50,6 +50,13 @@
       "when": 1792744533324,
       "tag": "0006_org_facts",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792750169002,
+      "tag": "0007_email_confirmations",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,7 @@ import { lexToJson } from '@atproto/lex';
 import { parseBirthDate, type pet } from '@homeward/lexicons';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from './index';
-import { indexAnimals, indexListings, indexOrgs, orgFacts } from './schema';
+import { emailConfirmations, indexAnimals, indexListings, indexOrgs, orgFacts } from './schema';
 
 type OrgProfile = pet.homeward.org.profile.Main;
 type Animal = pet.homeward.animal.Main;
@@ -150,6 +150,7 @@ export class IndexStore {
       await this.db.transaction(async (tx) => {
         await tx.delete(indexOrgs).where(eq(indexOrgs.did, did));
         await tx.delete(orgFacts).where(eq(orgFacts.did, did));
+        await tx.delete(emailConfirmations).where(eq(emailConfirmations.did, did));
       });
     } else if (collection === 'pet.homeward.animal') {
       await this.db.delete(indexAnimals).where(eq(indexAnimals.uri, uri));
@@ -165,6 +166,7 @@ export class IndexStore {
       await tx.delete(indexAnimals).where(eq(indexAnimals.did, did));
       await tx.delete(indexOrgs).where(eq(indexOrgs.did, did));
       await tx.delete(orgFacts).where(eq(orgFacts.did, did));
+      await tx.delete(emailConfirmations).where(eq(emailConfirmations.did, did));
     });
   }
 

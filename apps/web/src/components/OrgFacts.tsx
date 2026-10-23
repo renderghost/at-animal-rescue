@@ -1,6 +1,7 @@
 import type { OrgFacts as CheckedFacts } from '@homeward/db';
 import { getTranslations } from 'next-intl/server';
 import type { OrganisationProfile } from '@/server/onboarding/organisation-form';
+import type { EmailFact } from '@/server/org-page/email-fact';
 import { ExternalLink } from './ExternalLink';
 
 /**
@@ -10,12 +11,15 @@ import { ExternalLink } from './ExternalLink';
 export async function OrgFacts({
   handle,
   facts,
+  email,
   charity,
   locale,
 }: {
   /** The organisation's current verified handle. */
   handle?: string;
   facts?: CheckedFacts;
+  /** The confirmed contact email, when its confirmation still counts. */
+  email?: EmailFact;
   charity?: OrganisationProfile['charityRegistration'];
   locale: string;
 }) {
@@ -57,6 +61,22 @@ export async function OrgFacts({
             {t('factVerifier')}
           </ExternalLink>
         </span>
+      </li>,
+    );
+  }
+  if (email) {
+    const also =
+      email.alsoHandle && email.alsoWebsite
+        ? t('factEmailBoth')
+        : email.alsoHandle
+          ? t('factEmailHandle')
+          : email.alsoWebsite
+            ? t('factEmailWebsite')
+            : undefined;
+    items.push(
+      <li key="email">
+        {t('factEmail', { domain: email.domain, date: date(email.confirmedAt) })}
+        {also && <> {also}</>}
       </li>,
     );
   }

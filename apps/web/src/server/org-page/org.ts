@@ -1,6 +1,7 @@
 import 'server-only';
 import { jsonToLex } from '@atproto/lex';
 import {
+  EmailConfirmationStore,
   findOrg,
   OrgFactsStore,
   searchListings,
@@ -8,7 +9,7 @@ import {
   type OrgFacts,
 } from '@homeward/db';
 import { pet } from '@homeward/lexicons';
-import { getDb } from '../db';
+import { getDb, getKeyring } from '../db';
 import type { OrganisationProfile } from '../onboarding/organisation-form';
 
 export interface PublicOrg {
@@ -45,4 +46,9 @@ export function orgListings(org: PublicOrg, viewerDid: string | undefined, searc
 /** The facts Homeward has checked about an organisation (#29), if any yet. */
 export function orgFacts(did: string): Promise<OrgFacts | undefined> {
   return new OrgFactsStore(getDb()).get(did);
+}
+
+/** The organisation's last email confirmation (whether it still counts is decided on display). */
+export function emailConfirmationOf(did: string) {
+  return new EmailConfirmationStore(getDb(), getKeyring()).get(did);
 }

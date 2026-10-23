@@ -11,7 +11,8 @@ import { getPreferences } from '@/i18n/preferences';
 import { formatLocale } from '@/lib/format';
 import { getCurrentUser } from '@/server/auth/session';
 import { filtersToQuery, hasFilters, parseOrgFilters } from '@/server/org-page/filters';
-import { orgFacts, orgListings } from '@/server/org-page/org';
+import { emailFact } from '@/server/org-page/email-fact';
+import { emailConfirmationOf, orgFacts, orgListings } from '@/server/org-page/org';
 import { resolveOrg } from '@/server/org-page/resolve';
 
 type Props = {
@@ -37,11 +38,19 @@ export default async function OrgPage({ params, searchParams }: Props) {
   const { profile } = org;
   const name = profile.displayName;
 
-  const [animals, happyEndings, facts] = await Promise.all([
+  const [animals, happyEndings, facts, confirmation] = await Promise.all([
     orgListings(org, viewer?.did, { ...filters, statuses: ['available', 'reserved'], limit: 24 }),
     orgListings(org, viewer?.did, { statuses: ['adopted'], limit: HAPPY_ENDINGS_SHOWN }),
     orgFacts(org.did),
+    emailConfirmationOf(org.did),
   ]);
+  const email = emailFact({
+    confirmation,
+    currentEmail: profile.contact.email,
+    // Only a handle that has been checked as the organisation's own domain counts.
+    ownDomain: facts?.domain?.handle === org.handle ? facts?.domain?.handle : undefined,
+    website: profile.contact.website,
+  });
   const countryName =
     sortedCountries(language).find(({ code }) => code === profile.location.country)?.name ??
     profile.location.country;
@@ -223,6 +232,7 @@ export default async function OrgPage({ params, searchParams }: Props) {
           <OrgFacts
             handle={org.handle}
             facts={facts}
+            email={email}
             charity={profile.charityRegistration}
             locale={locale}
           />
