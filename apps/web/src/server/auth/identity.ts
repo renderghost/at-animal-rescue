@@ -58,7 +58,7 @@ export async function resolveAccount(
 }
 
 /** Only plain HTTPS origins on the default port; anything else is not a PDS we will call. */
-function safePdsOrigin(endpoint: string): string | undefined {
+export function safePdsOrigin(endpoint: string): string | undefined {
   try {
     const url = new URL(endpoint);
     if (url.protocol !== 'https:' || url.port || url.username || url.password) return undefined;

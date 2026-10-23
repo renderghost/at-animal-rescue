@@ -26,6 +26,7 @@ export * from './private-blobs';
 export * from './session-store';
 export * from './index-store';
 export * from './orgs';
+export * from './photos';
 export * from './org-facts';
 export * from './email-confirmations';
 export * from './search';
