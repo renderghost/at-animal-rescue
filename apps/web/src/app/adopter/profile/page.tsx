@@ -1,5 +1,6 @@
 import { pet } from '@homeward/lexicons';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { clearAdopterProfile } from '@/app/actions/adopter-profile';
@@ -10,6 +11,7 @@ import { getPreferences } from '@/i18n/preferences';
 import { toFormValues } from '@/server/adopter/adopter-form';
 import { publicAreaOf } from '@/server/adopter/save-adopter';
 import { getCurrentUser } from '@/server/auth/session';
+import { listingBackLink } from '@/server/listing-page/back-link';
 import { getCurrentRole, getRepoClient, lookupRecord } from '@/server/onboarding/current-role';
 import { getPrivateStore } from '@/server/private-store';
 
@@ -21,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AdopterProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ cleared?: string }>;
+  searchParams: Promise<{ cleared?: string; from?: string }>;
 }) {
   const user = await getCurrentUser();
   const client = await getRepoClient();
@@ -35,9 +37,12 @@ export default async function AdopterProfilePage({
     lookupRecord(() => client.get(pet.homeward.adopter.profile)),
   ]);
   const t = await getTranslations('AdopterProfile');
-  const { language } = await getPreferences();
+  const { language, formatLocale } = await getPreferences();
   const countries = sortedCountries(language);
-  const { cleared } = await searchParams;
+  const { cleared, from } = await searchParams;
+  // Came from a listing's "Answer in your profile" link: offer the way back.
+  const backLink = await listingBackLink(from, formatLocale);
+  const back = backLink && { href: backLink.href, label: t('backTo', { title: backLink.title }) };
 
   const initialValues = toFormValues({
     household,
@@ -47,6 +52,11 @@ export default async function AdopterProfilePage({
 
   return (
     <div className="max-w-2xl">
+      {back && (
+        <p className="mb-4">
+          <Link href={back.href}>{back.label}</Link>
+        </p>
+      )}
       <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
       <p className="mb-6">{t('intro')}</p>
 
@@ -84,6 +94,7 @@ export default async function AdopterProfilePage({
         publicProfileKnown={profile.kind !== 'unavailable'}
         publicArea={publicAreaOf(location)}
         countries={countries}
+        back={back}
       />
 
       {/* Two deliberate steps, without JavaScript: open the panel, then confirm. */}

@@ -519,7 +519,8 @@
     "deleteHeading": "Delete your private answers",
     "deleteBody": "This deletes your household answers and where you live from Homeward straight away. Your public profile, if you have one, is not affected.",
     "deleteAction": "Delete my private answers",
-    "deleted": "Your private answers have been deleted."
+    "deleted": "Your private answers have been deleted.",
+    "backTo": "Back to {title}"
   },
   "OrgPage": {
     "notApproved": "New to Homeward. Its animals will appear here once we've checked the organisation.",
@@ -1141,5 +1142,83 @@
       "unavailable": "We couldn't reach your account, so nothing was posted. Please try again."
     },
     "publishedNotPosted": "Published, but we couldn't post on Bluesky. You can try again below."
+  },
+  "Fit": {
+    "everythingFits": "Everything fits what you told us.",
+    "conflicts": "{count, plural, one {# thing doesn't fit your answers} other {# things don't fit your answers}}",
+    "unknowns": "{count, plural, one {# thing we can't check yet} other {# things we can't check yet}}",
+    "nothingToCompare": "{name} hasn't listed any requirements, so there's nothing to compare.",
+    "seeHow": "See how you fit",
+    "private": "Only you can see this. It comes from the private answers in your profile.",
+    "inviteAnonymous": "See how {title} would fit your home: <signIn>sign in</signIn> or <getStarted>get started</getStarted>, then answer a few questions about your home.",
+    "inviteNewcomer": "See how {title} would fit your home: <link>answer a few questions about your home</link>.",
+    "answer": {
+      "childrenNone": "You said: no children live with you or visit often.",
+      "children": "You said: children live with you or visit often.",
+      "childrenYoungest": "You said: children, the youngest aged {age}.",
+      "otherAnimalsNone": "You said: no other animals at home.",
+      "otherAnimals": "You said: {animals} at home.",
+      "experience": {
+        "none": "You said: you haven't looked after an animal like this before.",
+        "some": "You said: some experience with animals like this.",
+        "experienced": "You said: lots of experience with animals like this."
+      },
+      "homeType": {
+        "flat": "You said: you live in a flat or apartment.",
+        "house": "You said: you live in a house."
+      },
+      "setting": {
+        "urban": "You said: your home is in a town or city centre.",
+        "suburban": "You said: your home is in a suburb.",
+        "rural": "You said: your home is in the countryside."
+      },
+      "garden": {
+        "none": "You said: you don't have a garden.",
+        "yes": "You said: you have a garden.",
+        "secure": "You said: you have a fully fenced garden.",
+        "notSecure": "You said: your garden isn't fully fenced."
+      },
+      "stepFree": {
+        "yes": "You said: you can get into and around your home without stairs.",
+        "no": "You said: your home has stairs you can't avoid."
+      },
+      "tenure": {
+        "own": "You said: you own your home.",
+        "rentAllowed": "You said: you rent, and your landlord allows pets.",
+        "rentNotAllowed": "You said: you rent, and your landlord doesn't allow pets."
+      },
+      "hoursAlone": "You said: {hours, plural, one {up to # hour} other {up to # hours}} alone on a typical day.",
+      "hoursAloneMore": "You said: more than 8 hours alone on a typical day.",
+      "medicalCare": {
+        "yes": "You said: you could look after ongoing medical needs.",
+        "no": "You said: you couldn't look after ongoing medical needs."
+      },
+      "specialDiet": {
+        "yes": "You said: you could look after an animal on a special diet.",
+        "no": "You said: you couldn't look after an animal on a special diet."
+      },
+      "behaviouralSupport": {
+        "yes": "You said: you could help with behavioural support or training.",
+        "no": "You said: you couldn't help with behavioural support or training."
+      },
+      "distance": "You live about {distance} away.",
+      "nearby": "You live nearby.",
+      "homeVisit": {
+        "yes": "You said: you'd welcome a home visit.",
+        "no": "You said: you wouldn't want a home visit."
+      },
+      "multipleVisits": {
+        "yes": "You said: you could visit several times.",
+        "no": "You said: you couldn't visit several times."
+      }
+    },
+    "unknown": {
+      "unanswered": "You haven't answered this, or chose not to say.",
+      "noLocation": "We don't know where you live, so we can't work out the distance.",
+      "noListingLocation": "This listing doesn't give a place we can measure from.",
+      "unsupported": "We can't check this one for you. Ask {name} about it."
+    },
+    "answerLink": "Answer in your profile",
+    "locationLink": "Add where you live"
   }
 }

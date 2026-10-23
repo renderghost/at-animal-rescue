@@ -121,6 +121,25 @@ export async function getListing(db: Db, uri: string): Promise<ListingSearchResu
   return rows[0] && toResult(rows[0]);
 }
 
+/**
+ * How far a listing is from a point, in km, measured as search measures it (so a listing
+ * page and discovery agree on a distance criterion). Undefined when the listing has no
+ * location (#40).
+ */
+export async function listingDistanceKm(
+  db: Db,
+  uri: string,
+  from: { latitude: number; longitude: number },
+): Promise<number | undefined> {
+  const point = sql`ST_SetSRID(ST_MakePoint(${from.longitude}, ${from.latitude}), 4326)::geography`;
+  const rows = (await db.execute(sql`
+    SELECT ST_Distance(${listingPoint}, ${point}) / 1000 AS distance_km
+    FROM index_listings l
+    WHERE l.uri = ${uri} AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+  `)) as unknown as Array<{ distance_km: number | string }>;
+  return rows[0] ? Number(rows[0].distance_km) : undefined;
+}
+
 /** Network-wide listing search for discovery and organisation profiles (spec §2). */
 export async function searchListings(
   db: Db,

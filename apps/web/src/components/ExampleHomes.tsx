@@ -1,15 +1,9 @@
-import { evaluateMatch, type MatchSummary } from '@homeward/matching';
+import { evaluateMatch } from '@homeward/matching';
 import { getTranslations } from 'next-intl/server';
 import { EXAMPLE_HOMES } from '@/lib/example-homes';
 import type { ListingCriterion } from '@/server/listings/listing-form';
-import { Badge, type BadgeTone } from './Badge';
+import { Badge, MATCH_TONES } from './Badge';
 import { criterionText } from './CriteriaList';
-
-const TONES: Record<MatchSummary, BadgeTone> = {
-  strong: 'match',
-  possible: 'unknown',
-  conflicts: 'conflict',
-};
 
 /** How a listing's criteria suit a few made-up households (#33), as adopters would see it. */
 export async function ExampleHomes({ criteria }: { criteria: readonly ListingCriterion[] }) {
@@ -33,7 +27,7 @@ export async function ExampleHomes({ criteria }: { criteria: readonly ListingCri
           return (
             <li key={key} className="rounded-md border border-line bg-surface p-4">
               <p className="mb-2">{t(`homes.${key}` as 'homes.youngFamily')}</p>
-              <Badge tone={TONES[result.summary]}>{match(result.summary)}</Badge>
+              <Badge tone={MATCH_TONES[result.summary]}>{match(result.summary)}</Badge>
               {conflicts.length > 0 && (
                 <p className="mt-2 text-sm">{t('conflicts', { criteria: conflicts.join('; ') })}</p>
               )}

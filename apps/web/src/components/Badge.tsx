@@ -1,7 +1,15 @@
+import type { MatchSummary } from '@homeward/matching';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 export type BadgeTone = 'neutral' | 'match' | 'conflict' | 'unknown';
+
+/** The tone for each match summary badge. */
+export const MATCH_TONES: Record<MatchSummary, BadgeTone> = {
+  strong: 'match',
+  possible: 'unknown',
+  conflicts: 'conflict',
+};
 
 // Each status tone carries a glyph and a distinct border so meaning never relies on colour alone.
 const tones: Record<BadgeTone, { className: string; icon: string | null }> = {

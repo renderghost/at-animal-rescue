@@ -74,6 +74,11 @@
     outline-offset: 2px;
   }
 
+  /* A link to a question (e.g. /adopter/profile#garden) leaves room for its label above. */
+  :target {
+    scroll-margin-block-start: 5rem;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
