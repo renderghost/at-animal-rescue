@@ -1,23 +1,38 @@
-import { useId, type ComponentProps } from 'react';
+import { useId, type ComponentProps, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
-type FieldProps = ComponentProps<'input'> & {
+interface LabelProps {
   label: string;
   hint?: string;
   error?: string;
-};
+}
 
-/** Labelled text input with hint and error text wired up via aria-describedby. */
-export function Field({ label, hint, error, id, className, ...inputProps }: FieldProps) {
+const control =
+  'min-h-11 rounded-sm border border-line-strong bg-surface px-3 py-2 text-base text-fg aria-invalid:border-2 aria-invalid:border-danger';
+
+/** Label, hint and error text for one control, wired up via aria-describedby. */
+function Labelled({
+  id,
+  label,
+  hint,
+  error,
+  children,
+}: LabelProps & {
+  id?: string;
+  children: (props: {
+    id: string;
+    'aria-describedby'?: string;
+    'aria-invalid'?: true;
+  }) => ReactNode;
+}) {
   const generatedId = useId();
-  const inputId = id ?? generatedId;
-  const hintId = hint ? `${inputId}-hint` : undefined;
-  const errorId = error ? `${inputId}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+  const controlId = id ?? generatedId;
+  const hintId = hint ? `${controlId}-hint` : undefined;
+  const errorId = error ? `${controlId}-error` : undefined;
 
   return (
     <div className="mb-6 grid gap-1">
-      <label htmlFor={inputId} className="font-semibold">
+      <label htmlFor={controlId} className="font-semibold">
         {label}
       </label>
       {hint && (
@@ -30,16 +45,66 @@ export function Field({ label, hint, error, id, className, ...inputProps }: Fiel
           {error}
         </span>
       )}
-      <input
-        id={inputId}
-        className={cn(
-          'min-h-11 rounded-sm border border-line-strong bg-surface px-3 py-2 text-fg aria-invalid:border-2 aria-invalid:border-danger',
-          className,
-        )}
-        aria-describedby={describedBy}
-        aria-invalid={error ? true : undefined}
-        {...inputProps}
-      />
+      {children({
+        id: controlId,
+        'aria-describedby': [hintId, errorId].filter(Boolean).join(' ') || undefined,
+        'aria-invalid': error ? true : undefined,
+      })}
     </div>
+  );
+}
+
+/** Labelled text input. */
+export function Field({
+  label,
+  hint,
+  error,
+  id,
+  className,
+  ...inputProps
+}: ComponentProps<'input'> & LabelProps) {
+  return (
+    <Labelled id={id} label={label} hint={hint} error={error}>
+      {(aria) => <input className={cn(control, className)} {...aria} {...inputProps} />}
+    </Labelled>
+  );
+}
+
+/** Labelled multi-line text input. */
+export function TextArea({
+  label,
+  hint,
+  error,
+  id,
+  className,
+  ...textareaProps
+}: ComponentProps<'textarea'> & LabelProps) {
+  return (
+    <Labelled id={id} label={label} hint={hint} error={error}>
+      {(aria) => (
+        <textarea
+          rows={6}
+          className={cn(control, 'leading-relaxed', className)}
+          {...aria}
+          {...textareaProps}
+        />
+      )}
+    </Labelled>
+  );
+}
+
+/** Labelled select. */
+export function Select({
+  label,
+  hint,
+  error,
+  id,
+  className,
+  ...selectProps
+}: ComponentProps<'select'> & LabelProps) {
+  return (
+    <Labelled id={id} label={label} hint={hint} error={error}>
+      {(aria) => <select className={cn(control, className)} {...aria} {...selectProps} />}
+    </Labelled>
   );
 }

@@ -1,87 +1,190 @@
 import { toDatetimeString } from '@atproto/syntax';
 import { pet } from '@homeward/lexicons';
 import { isCountry } from '@/i18n/countries';
+import { fits, MAX_DONATION_LINKS } from '@/lib/organisation-limits';
 
-export type OrganisationField = 'displayName' | 'locality' | 'country' | 'email' | 'website';
 export type FieldError = 'required' | 'tooLong' | 'invalid';
 
-export interface OrganisationFormValues {
-  displayName: string;
-  locality: string;
-  region: string;
-  country: string;
-  preferred: string;
-  email: string;
-  website: string;
-}
+/** Field names as submitted; donation rows are `donationUrl.0`, `donationLabel.0` and so on. */
+export type OrganisationFormValues = Record<string, string>;
+export type OrganisationFormErrors = Partial<Record<string, FieldError>>;
 
 export type OrganisationProfile = Omit<pet.homeward.org.profile.Main, '$type'>;
 
 export type ParsedOrganisationForm =
-  | { ok: true; record: OrganisationProfile }
-  | {
-      ok: false;
-      errors: Partial<Record<OrganisationField, FieldError>>;
-      values: OrganisationFormValues;
-    };
+  | { ok: true; record: OrganisationProfile; values: OrganisationFormValues }
+  | { ok: false; errors: OrganisationFormErrors; values: OrganisationFormValues };
 
-const CONTACT_PREFERENCES = new Set(['email', 'bluesky', 'website']);
-const graphemes = new Intl.Segmenter();
-const length = (value: string) => [...graphemes.segment(value)].length;
-
-function text(form: FormData, name: string): string {
-  return String(form.get(name) ?? '').trim();
+export interface ParseOptions {
+  now?: Date;
+  /** Keep the original creation time when editing an existing profile. */
+  createdAt?: string;
+  /** Coarse coordinates from geocoding, if found. */
+  coordinates?: { latitude: string; longitude: string };
 }
 
-/** Turns the onboarding form into a pet.homeward.org.profile record, or field errors. */
-export function parseOrganisationForm(form: FormData, now = new Date()): ParsedOrganisationForm {
-  const values: OrganisationFormValues = {
-    displayName: text(form, 'displayName'),
-    locality: text(form, 'locality'),
-    region: text(form, 'region'),
-    country: text(form, 'country').toUpperCase(),
-    preferred: CONTACT_PREFERENCES.has(text(form, 'preferred')) ? text(form, 'preferred') : 'email',
-    email: text(form, 'email'),
-    website: text(form, 'website'),
-  };
-  const errors: Partial<Record<OrganisationField, FieldError>> = {};
+const CONTACT_PREFERENCES = new Set(['email', 'bluesky', 'website']);
+const DONATION_KINDS = new Set(['oneOff', 'recurring', 'both']);
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!values.displayName) errors.displayName = 'required';
-  else if (length(values.displayName) > 100) errors.displayName = 'tooLong';
-  if (!values.locality) errors.locality = 'required';
-  else if (length(values.locality) > 100) errors.locality = 'tooLong';
+/**
+ * Turns the organisation form (onboarding or the full profile editor) into a
+ * pet.homeward.org.profile record, or field errors. Fields the form doesn't include are
+ * simply left out of the record.
+ */
+export function parseOrganisationForm(
+  form: FormData,
+  { now = new Date(), createdAt, coordinates }: ParseOptions = {},
+): ParsedOrganisationForm {
+  const values: OrganisationFormValues = {};
+  for (const [key, value] of form.entries()) {
+    if (typeof value === 'string' && !key.startsWith('$')) values[key] = value.trim();
+  }
+  const get = (key: string) => values[key] ?? '';
+  values.country = get('country').toUpperCase();
+  values.preferred = CONTACT_PREFERENCES.has(get('preferred')) ? get('preferred') : 'email';
+
+  const errors: OrganisationFormErrors = {};
+  /** Checks a text field's length; true when it has a value that fits. */
+  const check = (key: string, required = false) => {
+    if (!get(key)) {
+      if (required) errors[key] = 'required';
+      return false;
+    }
+    if (!fits(key, get(key))) errors[key] = 'tooLong';
+    return !errors[key];
+  };
+  const checkUrl = (key: string, required = false) => {
+    if (check(key, required) && !isHttpsUrl(get(key))) errors[key] = 'invalid';
+  };
+
+  check('displayName', true);
+  check('locality', true);
+  check('region');
+  check('description');
+  check('adoptionProcess');
   if (!isCountry(values.country)) errors.country = 'required';
 
   // Only the contact method the organisation prefers is required; any other is optional.
-  if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) errors.email = 'invalid';
-  else if (values.preferred === 'email' && !values.email) errors.email = 'required';
-  if (values.website && !isHttpsUrl(values.website)) errors.website = 'invalid';
-  else if (values.preferred === 'website' && !values.website) errors.website = 'required';
+  if (check('email', values.preferred === 'email') && !EMAIL.test(get('email'))) {
+    errors.email = 'invalid';
+  }
+  checkUrl('website', values.preferred === 'website');
+
+  const donationLinks = [];
+  for (let i = 0; i < MAX_DONATION_LINKS; i++) {
+    const url = get(`donationUrl.${i}`);
+    const label = get(`donationLabel.${i}`);
+    if (!url && !label) continue;
+    checkUrl(`donationUrl.${i}`, true);
+    check(`donationLabel.${i}`);
+    const kind = get(`donationKind.${i}`);
+    donationLinks.push({
+      url,
+      ...(label && { label }),
+      kind: DONATION_KINDS.has(kind) ? kind : 'oneOff',
+    });
+  }
+
+  // A charity registration is optional, but needs both the register and the number.
+  const charity = {
+    registry: get('charityRegistry'),
+    number: get('charityNumber'),
+    registerUrl: get('charityUrl'),
+  };
+  const hasCharity = charity.registry || charity.number || charity.registerUrl;
+  if (hasCharity) {
+    check('charityRegistry', true);
+    check('charityNumber', true);
+    checkUrl('charityUrl');
+  }
 
   if (Object.keys(errors).length > 0) return { ok: false, errors, values };
 
   // The lexicon is the source of truth: parsing validates the record and gives it its type.
   const parsed = pet.homeward.org.profile.$safeParse({
     $type: 'pet.homeward.org.profile',
-    displayName: values.displayName,
+    displayName: get('displayName'),
+    ...(get('description') && { description: get('description') }),
     location: {
-      locality: values.locality,
-      ...(values.region && { region: values.region }),
+      locality: get('locality'),
+      ...(get('region') && { region: get('region') }),
       country: values.country,
+      ...coordinates,
     },
     contact: {
       preferred: values.preferred,
-      ...(values.email && { email: values.email }),
-      ...(values.website && { website: values.website }),
+      ...(get('email') && { email: get('email') }),
+      ...(get('website') && { website: get('website') }),
     },
-    createdAt: toDatetimeString(now),
+    ...(donationLinks.length > 0 && { donationLinks }),
+    ...(hasCharity && {
+      charityRegistration: {
+        registry: charity.registry,
+        number: charity.number,
+        ...(charity.registerUrl && { registerUrl: charity.registerUrl }),
+      },
+    }),
+    ...(get('adoptionProcess') && { adoptionProcess: get('adoptionProcess') }),
+    createdAt: createdAt ?? toDatetimeString(now),
   });
-  if (!parsed.success) return { ok: false, errors: { displayName: 'invalid' }, values };
+  // Unreachable while the checks above match the lexicon; never publish an invalid record.
+  if (!parsed.success) throw new Error(`Invalid organisation profile: ${parsed.reason.message}`);
   const { $type: _type, ...record } = parsed.value;
-  return { ok: true, record };
+  return { ok: true, record, values };
+}
+
+/** Everything the profile editor writes; anything else on the record is kept as it is. */
+const EDITED_FIELDS = new Set([
+  '$type',
+  'displayName',
+  'description',
+  'location',
+  'contact',
+  'donationLinks',
+  'charityRegistration',
+  'adoptionProcess',
+  'createdAt',
+]);
+
+/**
+ * The edited profile, keeping fields the form doesn't edit, such as images or fields added
+ * by a newer version of Homeward, so saving never loses them.
+ */
+export function mergeProfile(
+  existing: OrganisationProfile | undefined,
+  edited: OrganisationProfile,
+): OrganisationProfile {
+  const kept = Object.entries(existing ?? {}).filter(([key]) => !EDITED_FIELDS.has(key));
+  return { ...Object.fromEntries(kept), ...edited };
+}
+
+/** The form values for an existing profile, to prefill the editor. */
+export function profileToFormValues(profile: OrganisationProfile): OrganisationFormValues {
+  const values: OrganisationFormValues = {
+    displayName: profile.displayName,
+    description: profile.description ?? '',
+    locality: profile.location.locality,
+    region: profile.location.region ?? '',
+    country: profile.location.country,
+    preferred: profile.contact.preferred,
+    email: profile.contact.email ?? '',
+    website: profile.contact.website ?? '',
+    charityRegistry: profile.charityRegistration?.registry ?? '',
+    charityNumber: profile.charityRegistration?.number ?? '',
+    charityUrl: profile.charityRegistration?.registerUrl ?? '',
+    adoptionProcess: profile.adoptionProcess ?? '',
+  };
+  profile.donationLinks?.forEach((link, i) => {
+    values[`donationUrl.${i}`] = link.url;
+    values[`donationLabel.${i}`] = link.label ?? '';
+    values[`donationKind.${i}`] = link.kind;
+  });
+  return values;
 }
 
 function isHttpsUrl(value: string): boolean {
+  if (/\s/.test(value)) return false;
   try {
     return new URL(value).protocol === 'https:';
   } catch {

@@ -8,7 +8,8 @@
     "discover": "Find an animal",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "signedInAs": "Signed in as @{handle}"
+    "signedInAs": "Signed in as @{handle}",
+    "account": "Your profile"
   },
   "Footer": {
     "tagline": "Built on the AT Protocol. Your data stays yours.",
@@ -334,34 +335,80 @@
     "org": {
       "title": "Set up your organisation",
       "intro": "This is your public profile. It's published to your own account on the Atmosphere, so it stays yours. You can add more details later.",
-      "displayName": "Organisation name",
-      "locality": "Town or city",
-      "localityHint": "Shown on your profile and used for distance search. Never your street address.",
-      "region": "County, province or state (optional)",
-      "country": "Country",
-      "countryChoose": "Choose a country",
-      "preferred": "How should adopters contact you?",
-      "preferredEmail": "Email",
-      "preferredBluesky": "Bluesky (your account)",
-      "preferredWebsite": "Our website",
-      "email": "Contact email",
-      "website": "Website",
-      "websiteHint": "Must start with https://",
       "submit": "Publish profile",
-      "submitting": "Publishing…",
-      "publishFailed": "We couldn't publish your profile to your account. Please try again in a moment.",
-      "errors": {
-        "required": "This is required.",
-        "tooLong": "Keep this to 100 characters or fewer.",
-        "invalid": "This doesn't look right. Please check it."
-      }
+      "submitting": "Publishing…"
     },
     "done": {
       "title": "You're all set",
       "orgBody": "Your organisation profile is published. Next, you'll be able to add animals and create listings.",
       "adopterBody": "You're ready to start looking. Next, you'll be able to tell us about your home, privately, so we can show how well each animal suits you.",
       "comingSoon": "These next steps are on their way.",
-      "browse": "Find an animal"
+      "browse": "Find an animal",
+      "orgProfile": "Add more to your profile: what you do, how adoption works, donation links and any charity registration.",
+      "orgProfileAction": "Complete your profile",
+      "unlocatedNotFound": "We couldn't find your town on the map, so your animals won't appear in distance searches yet. You can check its spelling in your profile.",
+      "unlocatedUnavailable": "We couldn't look up your town on the map just now, so your animals won't appear in distance searches yet. Save your profile again later to try once more."
     }
+  },
+  "OrganisationForm": {
+    "displayName": "Organisation name",
+    "locality": "Town or city",
+    "localityHint": "Shown on your profile and used for distance search. Never your street address.",
+    "region": "County, province or state (optional)",
+    "country": "Country",
+    "countryChoose": "Choose a country",
+    "placeChoose": "Which {locality} do you mean?",
+    "placeChooseHint": "Choose yours so adopters nearby can find you.",
+    "placeChooseAlert": "We found more than one place called {locality}. Choose yours below, then save again.",
+    "placeSource": "Place names from <link>© OpenStreetMap contributors</link>.",
+    "preferred": "How should adopters contact you?",
+    "preferredEmail": "Email",
+    "preferredBluesky": "Bluesky (your account)",
+    "preferredWebsite": "Our website",
+    "email": "Contact email",
+    "website": "Website",
+    "websiteHint": "Must start with https://",
+    "invalidSummary": "Some details need checking. They're marked below.",
+    "publishFailed": "We couldn't save your profile to your account. Please try again in a moment.",
+    "errors": {
+      "required": "This is required.",
+      "tooLong": "Keep this to {max, number} characters or fewer.",
+      "invalid": "This doesn't look right. Please check it."
+    }
+  },
+  "OrganisationProfile": {
+    "title": "Your organisation profile",
+    "intro": "This is your public profile on Homeward. It's saved to your own account on the Atmosphere, so it stays yours.",
+    "loadFailed": "We couldn't load your profile from your account. Please try again in a moment.",
+    "saved": "Your profile is saved.",
+    "savedNotFound": "Your profile is saved, but we couldn't find {locality} on the map, so your animals won't appear in distance searches yet. Check the spelling, or try a nearby town.",
+    "savedUnavailable": "Your profile is saved, but we couldn't look up {locality} on the map just now, so your animals won't appear in distance searches yet. Save again later to try once more.",
+    "unlocated": "Your town isn't on the map yet, so your animals won't appear in distance searches. Check its spelling, then save.",
+    "about": "About you",
+    "description": "About your organisation",
+    "descriptionHint": "Who you are, which animals you help and where you work.",
+    "location": "Location",
+    "contact": "Contact",
+    "donations": "Donations",
+    "donationsHint": "Links where people can support you. To remove one, clear its address.",
+    "donationLink": "Donation link {number}",
+    "donationUrl": "Web address",
+    "donationLabel": "Label (optional)",
+    "donationLabelHint": "For example, “Sponsor a kennel”.",
+    "donationKind": "Type of giving",
+    "donationKindOneOff": "One-off",
+    "donationKindRecurring": "Regular",
+    "donationKindBoth": "One-off or regular",
+    "charity": "Charity registration",
+    "charityHint": "If you're on an official charity register, add it here. We show it as declared by you, with a link so adopters can check it themselves.",
+    "charityRegistry": "Name of the register",
+    "charityRegistryHint": "For example, the Charity Commission for England and Wales.",
+    "charityNumber": "Registration number",
+    "charityUrl": "Link to your entry in the register (optional)",
+    "adoption": "Adoption",
+    "adoptionProcess": "How adoption works",
+    "adoptionProcessHint": "The steps from first contact to taking an animal home, such as a visit or a home check.",
+    "submit": "Save profile",
+    "submitting": "Saving…"
   }
 }
