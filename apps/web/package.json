@@ -17,6 +17,7 @@
     "@atproto/syntax": "^0.7.7",
     "@homeward/db": "workspace:*",
     "@homeward/lexicons": "workspace:*",
+    "@homeward/matching": "workspace:*",
     "next": "^16.4.2",
     "next-intl": "^4.14.9",
     "nodemailer": "^7.0.13",

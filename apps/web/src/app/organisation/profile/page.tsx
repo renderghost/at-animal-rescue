@@ -51,6 +51,8 @@ export default async function OrganisationProfilePage() {
         <Link href={`/org/${encodeURIComponent(user.did)}`}>{t('viewPublic')}</Link>
         {' · '}
         <Link href="/organisation/animals">{t('yourAnimals')}</Link>
+        {' · '}
+        <Link href="/organisation/listings">{t('yourListings')}</Link>
       </p>
       {lookup.kind === 'found' ? (
         <OrganisationProfileForm

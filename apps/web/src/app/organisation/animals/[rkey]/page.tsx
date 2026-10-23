@@ -70,6 +70,11 @@ export default async function EditAnimalPage({ params, searchParams }: Props) {
             }))}
             videos={animal.record.videos ?? []}
           />
+          <p className="mt-12 border-t border-line pt-6">
+            <Link href={`/organisation/listings/new?animal=${rkey}`}>
+              {t('listThis', { name: animal.record.name })}
+            </Link>
+          </p>
           {!animal.published && (
             // Two deliberate steps, without JavaScript: open the panel, then confirm.
             <details className="mt-12 border-t border-line pt-6">

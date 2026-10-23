@@ -1,0 +1,86 @@
+import type { Household } from '@homeward/matching';
+
+/**
+ * Made-up households for the listing editor's preview (#33), so organisations can see how
+ * strict their criteria are. Fixed, so the same criteria always give the same results.
+ */
+export const EXAMPLE_HOMES: ReadonlyArray<{ key: string; household: Household }> = [
+  {
+    key: 'youngFamily',
+    household: {
+      children: { present: true, youngestAge: 4 },
+      otherAnimals: [],
+      experience: 'some',
+      homeType: 'flat',
+      garden: { present: false },
+      setting: 'urban',
+      stepFree: false,
+      tenure: 'rent',
+      landlordPermission: true,
+      hoursAlone: 4,
+      willingMedicalCare: true,
+      willingSpecialDiet: true,
+      willingBehaviouralSupport: false,
+      acceptsHomeVisit: true,
+      canVisitSeveralTimes: true,
+    },
+  },
+  {
+    key: 'retiredCouple',
+    household: {
+      children: { present: false },
+      otherAnimals: ['cat'],
+      experience: 'experienced',
+      homeType: 'house',
+      garden: { present: true, secure: true },
+      setting: 'suburban',
+      stepFree: true,
+      tenure: 'own',
+      hoursAlone: 2,
+      willingMedicalCare: true,
+      willingSpecialDiet: true,
+      willingBehaviouralSupport: true,
+      acceptsHomeVisit: true,
+      canVisitSeveralTimes: true,
+    },
+  },
+  {
+    key: 'firstTimer',
+    household: {
+      children: { present: false },
+      otherAnimals: [],
+      experience: 'none',
+      homeType: 'flat',
+      garden: { present: false },
+      setting: 'urban',
+      stepFree: true,
+      tenure: 'rent',
+      landlordPermission: true,
+      hoursAlone: 8,
+      willingMedicalCare: false,
+      willingSpecialDiet: true,
+      willingBehaviouralSupport: false,
+      acceptsHomeVisit: true,
+      canVisitSeveralTimes: false,
+    },
+  },
+  {
+    key: 'farmFamily',
+    household: {
+      children: { present: true, youngestAge: 12 },
+      otherAnimals: ['dog'],
+      experience: 'experienced',
+      homeType: 'house',
+      garden: { present: true, secure: false },
+      setting: 'rural',
+      stepFree: false,
+      tenure: 'own',
+      hoursAlone: 4,
+      willingMedicalCare: true,
+      willingSpecialDiet: true,
+      willingBehaviouralSupport: true,
+      acceptsHomeVisit: true,
+      canVisitSeveralTimes: true,
+    },
+  },
+];
