@@ -11,7 +11,11 @@ import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Common');
-  return { title: { default: t('appName'), template: `%s · ${t('appName')}` } };
+  return {
+    // Absolute links in shared previews (Open Graph images) need the public address.
+    ...(process.env.SITE_URL && { metadataBase: new URL(process.env.SITE_URL) }),
+    title: { default: t('appName'), template: `%s · ${t('appName')}` },
+  };
 }
 
 const container = 'mx-auto w-full max-w-6xl px-4';

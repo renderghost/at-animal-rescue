@@ -11,6 +11,7 @@ import { getPreferences } from '@/i18n/preferences';
 import { formatLocale } from '@/lib/format';
 import { getCurrentUser } from '@/server/auth/session';
 import { filtersToQuery, hasFilters, parseOrgFilters } from '@/server/org-page/filters';
+import { contactLinks } from '@/server/org-page/contact';
 import { emailFact } from '@/server/org-page/email-fact';
 import { emailConfirmationOf, orgFacts, orgListings } from '@/server/org-page/org';
 import { resolveOrg } from '@/server/org-page/resolve';
@@ -57,22 +58,15 @@ export default async function OrgPage({ params, searchParams }: Props) {
   const place = [profile.location.locality, profile.location.region, countryName]
     .filter(Boolean)
     .join(', ');
-  const contact = profile.contact;
-  const contactLinks = [
-    contact.email && {
-      key: 'email',
-      href: `mailto:${contact.email}?subject=${encodeURIComponent(t('contactSubject'))}`,
-      label: t('contactEmail', { name }),
-    },
+  const { preferred, others } = contactLinks(
+    org,
     {
-      key: 'bluesky',
-      href: `https://bsky.app/profile/${org.handle ?? org.did}`,
-      label: t('contactBluesky'),
+      email: t('contactEmail', { name }),
+      bluesky: t('contactBluesky'),
+      website: t('contactWebsite'),
     },
-    contact.website && { key: 'website', href: contact.website, label: t('contactWebsite') },
-  ].filter((link): link is { key: string; href: string; label: string } => Boolean(link));
-  const preferred = contactLinks.find((link) => link.key === contact.preferred) ?? contactLinks[0]!;
-  const others = contactLinks.filter((link) => link !== preferred);
+    { subject: t('contactSubject') },
+  );
   const home = `/org/${encodeURIComponent(org.handle ?? org.did)}`;
 
   return (
