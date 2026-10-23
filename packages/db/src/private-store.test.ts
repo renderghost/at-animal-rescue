@@ -46,6 +46,26 @@ describe.runIf(databaseUrl)('PostgresPrivateStore', () => {
     expect(await store.get(did, 'pet.homeward.adopter.household', 'self')).toEqual(household);
   });
 
+  it('keeps animal drafts privately, under a TID record key', async () => {
+    const did = newDid();
+    const rkey = newRecordKey();
+    const draft: pet.homeward.animal.Main = {
+      $type: 'pet.homeward.animal',
+      name: 'Bonnie',
+      species: 'rabbit',
+      birth: { date: '2023-10', estimated: true },
+      createdAt: updatedAt,
+    };
+    await store.put(did, 'pet.homeward.animal', rkey, draft);
+    expect(await store.get(did, 'pet.homeward.animal', rkey)).toEqual(draft);
+    expect((await store.list(did, 'pet.homeward.animal')).records).toEqual([
+      { rkey, value: draft },
+    ]);
+    await expect(store.put(did, 'pet.homeward.animal', 'self', draft)).rejects.toThrow(
+      'Invalid record key',
+    );
+  });
+
   it('stores ciphertext, never plaintext', async () => {
     const did = newDid();
     await store.put(did, 'pet.homeward.adopter.household', 'self', household);
