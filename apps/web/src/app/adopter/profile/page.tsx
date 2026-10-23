@@ -58,7 +58,10 @@ export default async function AdopterProfilePage({
         </p>
       )}
       <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
-      <p className="mb-6">{t('intro')}</p>
+      <p className="mb-4">{t('intro')}</p>
+      <p className="mb-6">
+        <Link href="/adopter/searches">{t('savedSearches')}</Link>
+      </p>
 
       <section
         aria-labelledby="privacy"

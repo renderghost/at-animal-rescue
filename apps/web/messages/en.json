@@ -556,7 +556,8 @@
     "deleteBody": "This deletes your household answers and where you live from Homeward straight away. Your public profile, if you have one, is not affected.",
     "deleteAction": "Delete my private answers",
     "deleted": "Your private answers have been deleted.",
-    "backTo": "Back to {title}"
+    "backTo": "Back to {title}",
+    "savedSearches": "Your saved searches"
   },
   "OrgPage": {
     "notApproved": "New to Homeward. Its animals will appear here once we've checked the organisation.",
@@ -1257,5 +1258,35 @@
     },
     "answerLink": "Answer in your profile",
     "locationLink": "Add where you live"
+  },
+  "SavedSearches": {
+    "title": "Saved searches",
+    "intro": "Searches you saved on Find an animal. Only you can see them.",
+    "find": "Find an animal",
+    "saveHeading": "Save this search",
+    "saveHint": "Keep these filters to run again later. Only you can see your saved searches.",
+    "name": "Name",
+    "save": "Save search",
+    "saved": "Search saved.",
+    "yours": "{count, plural, =0 {Your saved searches} one {Your saved searches (#)} other {Your saved searches (#)}}",
+    "errors": {
+      "nameRequired": "Give this search a name.",
+      "nameTooLong": "Keep the name to {max, number} characters or fewer.",
+      "full": "You can keep up to {max, number} saved searches. Delete one to save another."
+    },
+    "none": "You haven't saved any searches yet. Choose filters on <link>Find an animal</link>, then save them there.",
+    "savedOn": "Saved on {date}",
+    "open": "Show animals<hidden> for {name}</hidden>",
+    "rename": "Rename<hidden> {name}</hidden>",
+    "renameSave": "Save name",
+    "renamed": "Search renamed.",
+    "delete": "Delete<hidden> {name}</hidden>",
+    "deleteConfirm": "Delete “{name}”? This can't be undone.",
+    "deleteAction": "Delete this search",
+    "deleted": "Search deleted.",
+    "animals": "{species, select, dog {dogs} cat {cats} rabbit {rabbits} guineaPig {guinea pigs} hamster {hamsters} gerbil {gerbils} rat {rats} mouse {mice} chinchilla {chinchillas} degu {degus} ferret {ferrets} other {other animals}}",
+    "nameAll": "All animals",
+    "nameNear": "{animals} near {place}",
+    "nameWithin": "{name}, within {distance}"
   }
 }
