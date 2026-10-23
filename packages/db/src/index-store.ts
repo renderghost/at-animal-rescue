@@ -2,7 +2,7 @@ import { lexToJson } from '@atproto/lex';
 import type { pet } from '@homeward/lexicons';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from './index';
-import { indexAnimals, indexListings, indexOrgs } from './schema';
+import { indexAnimals, indexListings, indexOrgs, orgFacts } from './schema';
 
 type OrgProfile = pet.homeward.org.profile.Main;
 type Animal = pet.homeward.animal.Main;
@@ -148,7 +148,10 @@ export class IndexStore {
   async deleteRecord(uri: string): Promise<void> {
     const { did, collection } = parseAtUri(uri);
     if (collection === 'pet.homeward.org.profile') {
-      await this.db.delete(indexOrgs).where(eq(indexOrgs.did, did));
+      await this.db.transaction(async (tx) => {
+        await tx.delete(indexOrgs).where(eq(indexOrgs.did, did));
+        await tx.delete(orgFacts).where(eq(orgFacts.did, did));
+      });
     } else if (collection === 'pet.homeward.animal') {
       await this.db.delete(indexAnimals).where(eq(indexAnimals.uri, uri));
     } else if (collection === 'pet.homeward.listing') {
@@ -162,11 +165,12 @@ export class IndexStore {
       await tx.delete(indexListings).where(eq(indexListings.did, did));
       await tx.delete(indexAnimals).where(eq(indexAnimals.did, did));
       await tx.delete(indexOrgs).where(eq(indexOrgs.did, did));
+      await tx.delete(orgFacts).where(eq(orgFacts.did, did));
     });
   }
 
-  /** Updates the stored handle when an account's identity changes. */
-  async updateHandle(did: string, handle: string): Promise<void> {
+  /** Updates the stored handle when an account's identity changes; null if it can't be verified. */
+  async updateHandle(did: string, handle: string | null): Promise<void> {
     await this.db.update(indexOrgs).set({ handle }).where(eq(indexOrgs.did, did));
   }
 }

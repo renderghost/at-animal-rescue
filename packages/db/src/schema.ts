@@ -152,3 +152,21 @@ export const serviceState = pgTable('service_state', {
   value: text().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Facts about an organisation that Homeward has checked, shown on its page instead of a
+ * "verified" badge (#29). Each part records when it was last checked.
+ */
+export const orgFacts = pgTable('org_facts', {
+  did: text().primaryKey(),
+  /** The handle checked, when it is the organisation's own domain (not a hosting provider). */
+  domainHandle: text('domain_handle'),
+  /** How the domain points back to the account: 'dns' or 'https'. */
+  domainMethod: text('domain_method'),
+  domainCheckedAt: timestamp('domain_checked_at', { withTimezone: true }),
+  /** Valid verifications by trusted verifiers: [{ issuer, issuerHandle?, issuerName?, createdAt }]. */
+  verifications: jsonb()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  verificationsCheckedAt: timestamp('verifications_checked_at', { withTimezone: true }),
+});
