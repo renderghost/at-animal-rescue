@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import type { pet } from '@homeward/lexicons';
+import { cidForRawBytes } from '@atproto/lex';
+import { pet } from '@homeward/lexicons';
 import { sql } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
 import { generateKey, parseKeyring } from './crypto';
@@ -64,6 +65,29 @@ describe.runIf(databaseUrl)('PostgresPrivateStore', () => {
     await expect(store.put(did, 'pet.homeward.animal', 'self', draft)).rejects.toThrow(
       'Invalid record key',
     );
+  });
+
+  it('keeps a draft’s photo references intact', async () => {
+    const did = newDid();
+    const rkey = newRecordKey();
+    const bytes = new TextEncoder().encode('pretend JPEG');
+    const ref = await cidForRawBytes(bytes);
+    const draft: pet.homeward.animal.Main = {
+      $type: 'pet.homeward.animal',
+      name: 'Bonnie',
+      species: 'rabbit',
+      photos: [
+        {
+          image: { $type: 'blob', ref, mimeType: 'image/jpeg', size: bytes.length },
+          alt: 'Bonnie on the lawn',
+        },
+      ],
+      createdAt: updatedAt,
+    };
+    await store.put(did, 'pet.homeward.animal', rkey, draft);
+    const back = await store.get(did, 'pet.homeward.animal', rkey);
+    expect(back).toEqual(draft);
+    expect(pet.homeward.animal.$safeParse(back).success).toBe(true);
   });
 
   it('stores ciphertext, never plaintext', async () => {

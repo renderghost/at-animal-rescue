@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
   // Internal workspace packages ship TypeScript source.
   transpilePackages: ['@homeward/db', '@homeward/lexicons', '@homeward/matching'],
   poweredByHeader: false,
+  experimental: {
+    // Full-size phone photos from browsers without JavaScript (#32); the server shrinks them.
+    serverActions: { bodySizeLimit: '16mb' },
+  },
 };
 
 export default withNextIntl(nextConfig);

@@ -1,7 +1,9 @@
 import 'server-only';
 import type { Client } from '@atproto/lex';
 import { isValidTid, toDatetimeString } from '@atproto/syntax';
+import { PrivateBlobStore } from '@homeward/db';
 import { pet } from '@homeward/lexicons';
+import { getDb, getKeyring } from '../db';
 import { getPrivateStore } from '../private-store';
 import { lookupRecord } from '../onboarding/current-role';
 import {
@@ -42,6 +44,9 @@ export type AnimalFormState =
     };
 
 export const isAnimalKey = (rkey: string) => isValidTid(rkey);
+
+/** Where a draft's files are kept in the private blob store. */
+export const draftFiles = (rkey: string) => `${DRAFT}/${rkey}`;
 
 /** The organisation's animals: private drafts and those already published. */
 export async function listAnimals(
@@ -154,6 +159,16 @@ export async function saveAnimal(
 export async function deleteDraft(did: string, rkey: string): Promise<boolean> {
   const store = getPrivateStore();
   const deleted = await store.delete(did, DRAFT, rkey);
-  if (deleted) await store.delete(did, IDENTIFICATION, rkey);
+  if (deleted) {
+    await store.delete(did, IDENTIFICATION, rkey);
+    // Its photos, kept by Homeward until the animal is listed.
+    await new PrivateBlobStore(getDb(), getKeyring()).delete(did, draftFiles(rkey));
+  }
   return deleted;
+}
+
+/** The CID string of a photo's image, to address it in routes and the private blob store. */
+export function photoCid(photo: NonNullable<AnimalRecord['photos']>[number]): string {
+  const image = photo.image as { ref?: { toString(): string }; cid?: string };
+  return image.ref?.toString() ?? image.cid ?? '';
 }

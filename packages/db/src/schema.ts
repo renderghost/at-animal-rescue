@@ -198,3 +198,25 @@ export const emailConfirmations = pgTable('email_confirmations', {
   sendWindowStartedAt: timestamp('send_window_started_at', { withTimezone: true }),
   sendsInWindow: integer('sends_in_window').notNull().default(0),
 });
+
+/**
+ * Files that belong to private drafts, such as photos of animals not listed yet (#32),
+ * encrypted like private records and addressed by content (CID) so a draft's record can
+ * reference them exactly as it will once they're uploaded to the PDS.
+ */
+export const privateBlobs = pgTable(
+  'private_blobs',
+  {
+    did: text().notNull(),
+    /** The draft record the file belongs to, as `collection/rkey`. */
+    record: text().notNull(),
+    cid: text().notNull(),
+    mimeType: text('mime_type').notNull(),
+    size: integer().notNull(),
+    keyId: text('key_id').notNull(),
+    iv: bytea().notNull(),
+    ciphertext: bytea().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.did, t.record, t.cid] })],
+);
