@@ -19,6 +19,7 @@ import {
   type ListingFormValues,
   type ListingRecord,
 } from './listing-form';
+import { canChange, isPublicStatus, parseAdoptedAt, withStatus } from './lifecycle';
 import { publishAnimal, publishListing, PublishError, type PublishDeps } from './publish';
 
 const DRAFT = 'pet.homeward.listing';
@@ -30,6 +31,7 @@ export interface ListingSummary {
   animals: string[];
   status: string;
   published: boolean;
+  adoptedAt?: string;
 }
 
 export type ListingLookup =
@@ -142,8 +144,15 @@ export async function listListings(did: string, client: Client) {
       animals: names(did, record, animals),
       status: record.status,
       published,
+      ...(record.adoptedAt && { adoptedAt: record.adoptedAt }),
     }));
-  return { listings: summaries, pdsUnavailable };
+  // Animals that could go into a new listing: not in any open one.
+  const taken = takenAnimals(did, listings, '');
+  return {
+    listings: summaries,
+    unlisted: animals.filter((animal) => !taken.has(animal.rkey)),
+    pdsUnavailable,
+  };
 }
 
 /** The animals the editor offers, and which are already in another open listing. */
@@ -304,4 +313,71 @@ export async function publishDraftListing(
 /** Deletes a draft listing. Its animals stay, as drafts or published. */
 export async function deleteListingDraft(did: string, rkey: string): Promise<boolean> {
   return getPrivateStore().delete(did, DRAFT, rkey);
+}
+
+export type StatusResult =
+  | { ok: true }
+  | { ok: false; reason: 'missing' | 'notAllowed' | 'conflict' | 'invalidDate' | 'unavailable' };
+
+/**
+ * Changes a published listing's status (spec §2, Listing status). Relisting a withdrawn
+ * listing, or undoing an adoption, needs its animals to be free of other open listings.
+ */
+export async function changeListingStatus(
+  did: string,
+  client: Client,
+  rkey: string,
+  to: string,
+  adoptedAtInput?: string,
+): Promise<StatusResult> {
+  const found = await lookupRecord(() => client.get(pet.homeward.listing, { rkey }));
+  if (found.kind !== 'found') return { ok: false, reason: found.kind };
+  const listing = found.record;
+  if (!isPublicStatus(to) || !canChange(listing.status, to)) {
+    return { ok: false, reason: 'notAllowed' };
+  }
+
+  if (to === 'available' && (listing.status === 'withdrawn' || listing.status === 'adopted')) {
+    const [{ listings, pdsUnavailable }, { animals, pdsUnavailable: animalsUnavailable }] =
+      await Promise.all([allListings(did, client), listAnimals(did, client)]);
+    if (pdsUnavailable || animalsUnavailable) return { ok: false, reason: 'unavailable' };
+    const taken = takenAnimals(did, listings, rkey);
+    const keys = listing.animals.map((uri) => animalKey(did, uri));
+    const free = keys.every(
+      (key) => key && !taken.has(key) && animals.some((animal) => animal.rkey === key),
+    );
+    if (!free) return { ok: false, reason: 'conflict' };
+  }
+
+  let adoptedAt: string | undefined;
+  if (to === 'adopted') {
+    const parsed = parseAdoptedAt(adoptedAtInput);
+    if (parsed === 'invalid') return { ok: false, reason: 'invalidDate' };
+    adoptedAt = parsed;
+  }
+  try {
+    await client.put(pet.homeward.listing, withStatus(listing, to, adoptedAt), { rkey });
+  } catch (err) {
+    console.warn("Could not change a listing's status", err);
+    return { ok: false, reason: 'unavailable' };
+  }
+  return { ok: true };
+}
+
+/** Deletes a withdrawn listing from the organisation's account for good. Its animals stay. */
+export async function deleteWithdrawnListing(
+  did: string,
+  client: Client,
+  rkey: string,
+): Promise<StatusResult> {
+  const found = await lookupRecord(() => client.get(pet.homeward.listing, { rkey }));
+  if (found.kind !== 'found') return { ok: false, reason: found.kind };
+  if (found.record.status !== 'withdrawn') return { ok: false, reason: 'notAllowed' };
+  try {
+    await client.delete(pet.homeward.listing, { rkey });
+  } catch (err) {
+    console.warn('Could not delete a listing', err);
+    return { ok: false, reason: 'unavailable' };
+  }
+  return { ok: true };
 }

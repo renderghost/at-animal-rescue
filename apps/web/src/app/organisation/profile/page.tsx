@@ -52,7 +52,7 @@ export default async function OrganisationProfilePage() {
         {' · '}
         <Link href="/organisation/animals">{t('yourAnimals')}</Link>
         {' · '}
-        <Link href="/organisation/listings">{t('yourListings')}</Link>
+        <Link href="/organisation">{t('yourListings')}</Link>
       </p>
       {lookup.kind === 'found' ? (
         <OrganisationProfileForm

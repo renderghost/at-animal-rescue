@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { createDb } from './index';
 import { IndexStore, parseCoordinates } from './index-store';
 import { indexListings, indexOrgs } from './schema';
-import { findOrg } from './orgs';
+import { findOrg, hiddenListingKeys } from './orgs';
 import { searchListings } from './search';
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -119,6 +119,8 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
     expect(uris(await searchListings(db, { orgDid: org.did }))).toEqual([]);
     const own = await searchListings(db, { orgDid: org.did, includeUnmoderated: true });
     expect(own.listings[0]).toMatchObject({ moderation: 'hidden' });
+    // The organisation's dashboard shows which.
+    expect(await hiddenListingKeys(db, org.did)).toEqual(['l1']);
   });
 
   it('filters by age group, worked out per species', async () => {

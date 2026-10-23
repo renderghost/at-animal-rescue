@@ -1,6 +1,6 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Db } from './index';
-import { indexOrgs } from './schema';
+import { indexListings, indexOrgs } from './schema';
 
 export interface IndexedOrg {
   did: string;
@@ -32,4 +32,13 @@ export async function findOrg(
     )
     .limit(1);
   return row && { ...row, handle: row.handle ?? undefined };
+}
+
+/** Record keys of an organisation's listings hidden after a report (#44), for its dashboard. */
+export async function hiddenListingKeys(db: Db, did: string): Promise<string[]> {
+  const rows = await db
+    .select({ rkey: indexListings.rkey })
+    .from(indexListings)
+    .where(and(eq(indexListings.did, did), eq(indexListings.moderation, 'hidden')));
+  return rows.map((row) => row.rkey);
 }
