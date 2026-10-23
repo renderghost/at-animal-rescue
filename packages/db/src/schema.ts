@@ -179,3 +179,22 @@ export const orgFacts = pgTable('org_facts', {
     .default(sql`'[]'::jsonb`),
   verificationsCheckedAt: timestamp('verifications_checked_at', { withTimezone: true }),
 });
+
+/**
+ * An organisation's contact email confirmation (#30): the address confirmed and when, plus
+ * any code waiting to be entered. Kept here, never on the PDS.
+ */
+export const emailConfirmations = pgTable('email_confirmations', {
+  did: text().primaryKey(),
+  /** The address last confirmed (lower case). */
+  email: text(),
+  confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+  /** The address a code was sent to, and a keyed hash of the code (never the code itself). */
+  pendingEmail: text('pending_email'),
+  codeHash: text('code_hash'),
+  codeExpiresAt: timestamp('code_expires_at', { withTimezone: true }),
+  attempts: integer().notNull().default(0),
+  /** Sends in the current hour, for rate limiting. */
+  sendWindowStartedAt: timestamp('send_window_started_at', { withTimezone: true }),
+  sendsInWindow: integer('sends_in_window').notNull().default(0),
+});

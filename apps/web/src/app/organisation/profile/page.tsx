@@ -1,11 +1,15 @@
 import type { Metadata } from 'next';
+import { CONFIRMATION_LIFETIME_MS, confirmationHolds, EmailConfirmationStore } from '@homeward/db';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { EmailConfirmationPanel } from '@/components/EmailConfirmationPanel';
 import { OrganisationProfileForm } from '@/components/OrganisationProfileForm';
 import { sortedCountries } from '@/i18n/countries';
 import { getPreferences } from '@/i18n/preferences';
+import { formatLocale } from '@/lib/format';
 import { getCurrentUser } from '@/server/auth/session';
+import { getDb, getKeyring } from '@/server/db';
 import { getRepoClient, loadOrganisationProfile } from '@/server/onboarding/current-role';
 import { profileToFormValues } from '@/server/onboarding/organisation-form';
 
@@ -23,7 +27,21 @@ export default async function OrganisationProfilePage() {
   const lookup = await loadOrganisationProfile(client);
   if (lookup.kind === 'missing') redirect('/welcome');
   const t = await getTranslations('OrganisationProfile');
-  const { language } = await getPreferences();
+  const { language, country } = await getPreferences();
+  const email = lookup.kind === 'found' ? lookup.record.contact.email : undefined;
+  const confirmations = new EmailConfirmationStore(getDb(), getKeyring());
+  const [confirmation, codeWaiting] = await Promise.all([
+    confirmations.get(user.did),
+    email ? confirmations.pending(user.did, email) : false,
+  ]);
+  const locale = formatLocale(language, country);
+  const day = (date: Date) => new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(date);
+  const confirmedDates = confirmationHolds(confirmation, email)
+    ? {
+        on: day(confirmation.confirmedAt),
+        until: day(new Date(confirmation.confirmedAt.getTime() + CONFIRMATION_LIFETIME_MS)),
+      }
+    : undefined;
 
   return (
     <div className="max-w-2xl">
@@ -45,6 +63,14 @@ export default async function OrganisationProfilePage() {
         >
           {t('loadFailed')}
         </p>
+      )}
+      {lookup.kind === 'found' && (
+        <EmailConfirmationPanel
+          hasEmail={Boolean(email)}
+          confirmed={confirmedDates}
+          codeWaiting={codeWaiting}
+          locale={locale}
+        />
       )}
     </div>
   );
