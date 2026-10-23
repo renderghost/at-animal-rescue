@@ -421,7 +421,7 @@
     "submitting": "Saving…",
     "viewPublic": "See your public page",
     "yourAnimals": "Your animals",
-    "yourListings": "Your listings"
+    "yourListings": "Your dashboard"
   },
   "AdopterProfile": {
     "title": "Your home and preferences",
@@ -634,7 +634,7 @@
     "pdsUnavailable": "We couldn't reach your account just now, so only your drafts are shown.",
     "deleted": "The draft has been deleted.",
     "yourAnimals": "Your animals",
-    "yourListings": "Your listings"
+    "yourListings": "Your dashboard"
   },
   "AnimalEditor": {
     "newTitle": "Add an animal",
@@ -771,29 +771,10 @@
     "addHeading": "Add a photo",
     "saving": "Saving…"
   },
-  "Listings": {
-    "title": "Your listings",
-    "intro": "A listing offers one or more animals for adoption. Drafts stay private until you publish them.",
-    "add": "Add a listing",
-    "none": "No listings yet.",
-    "noAnimals": "Add an animal first, then create a listing for it.",
-    "edit": "Edit {title}",
-    "status": {
-      "draft": "Draft (private)",
-      "available": "Available",
-      "reserved": "Reserved",
-      "adopted": "Adopted",
-      "withdrawn": "Withdrawn"
-    },
-    "pdsUnavailable": "We couldn't reach your account just now, so only your drafts are shown.",
-    "deleted": "The draft listing has been deleted.",
-    "yourListings": "Your listings",
-    "yourAnimals": "Your animals"
-  },
   "ListingEditor": {
     "newTitle": "Create a listing",
     "editTitle": "Edit {title}",
-    "backToList": "Back to your listings",
+    "backToList": "Back to your dashboard",
     "draftNotice": "This is a private draft. Nothing here is public until you publish it.",
     "publicNotice": "This listing is public. Changes appear as soon as you save.",
     "savedDraft": "Draft saved.",
@@ -993,5 +974,70 @@
     "separately": "Can be adopted separately",
     "location": "In {place}",
     "criteria": "What kind of home"
+  },
+  "Dashboard": {
+    "title": "Your dashboard",
+    "editProfile": "Edit your profile",
+    "viewPublic": "See your public page",
+    "addListing": "Add a listing",
+    "addAnimal": "Add an animal",
+    "allAnimals": "All your animals",
+    "review": "Review",
+    "awaitingReview": "Awaiting review. A moderator approves each organisation once. Until then your profile is public but your listings aren't; after that, everything you publish is public straight away.",
+    "approved": "Approved. Your published listings are public.",
+    "hiddenCount": "{count, plural, one {# listing is hidden after a report.} other {# listings are hidden after a report.}}",
+    "pdsUnavailable": "We couldn't reach your account just now, so only your drafts are shown.",
+    "listings": "Listings",
+    "noListings": "No listings yet.",
+    "groups": {
+      "available": "Available",
+      "reserved": "Reserved",
+      "draft": "Drafts (private)",
+      "adopted": "Adopted",
+      "withdrawn": "Withdrawn",
+      "other": "Other"
+    },
+    "hidden": "Hidden after a report",
+    "adoptedOn": "Adopted on {date}",
+    "edit": "Edit",
+    "editListing": "Edit {title}",
+    "previewAndPublish": "Preview and publish",
+    "markReserved": "Mark reserved",
+    "markAvailable": "Mark available",
+    "relist": "Relist",
+    "markAdopted": "Mark adopted",
+    "adoptedDate": "Date of adoption",
+    "adoptedDateHint": "Today, unless you are catching up.",
+    "confirmAdopted": "Confirm adoption",
+    "withdraw": "Withdraw",
+    "withdrawBody": "The listing is hidden from public pages. You can relist it later.",
+    "confirmWithdraw": "Withdraw listing",
+    "fellThrough": "The adoption fell through",
+    "fellThroughBody": "The listing goes back to available.",
+    "confirmFellThrough": "Make it available again",
+    "delete": "Delete",
+    "deleteBody": "The listing is deleted from your account for good. Its animals stay.",
+    "confirmDelete": "Delete listing for good",
+    "actionsFor": "Actions for {title}",
+    "changed": {
+      "available": "{title} is available.",
+      "reserved": "{title} is reserved.",
+      "adopted": "{title} is adopted. Congratulations!",
+      "withdrawn": "{title} is withdrawn."
+    },
+    "deletedDraft": "The draft listing has been deleted.",
+    "deletedListing": "The listing has been deleted.",
+    "errors": {
+      "missing": "That listing no longer exists.",
+      "notAllowed": "That status change isn't possible from the listing's current status.",
+      "conflict": "One of its animals is missing or already in another open listing, so it can't be made available.",
+      "invalidDate": "Choose an adoption date that isn't in the future.",
+      "unavailable": "We couldn't reach your account just now, so nothing changed. Please try again."
+    },
+    "animals": "Animals not in an open listing",
+    "noUnlisted": "Every animal is in an open listing.",
+    "animalDraft": "Draft (private)",
+    "animalPublic": "Public",
+    "listAnimal": "Create a listing for {name}"
   }
 }

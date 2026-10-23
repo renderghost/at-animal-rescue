@@ -29,7 +29,7 @@ export default async function AnimalsPage({
       <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
       <p className="mb-2 max-w-prose">{t('intro')}</p>
       <p className="mb-6">
-        <Link href="/organisation/listings">{t('yourListings')}</Link>
+        <Link href="/organisation">{t('yourListings')}</Link>
       </p>
       {deleted && (
         <p role="status" className="mb-6 rounded-md border border-line bg-sunken p-4">

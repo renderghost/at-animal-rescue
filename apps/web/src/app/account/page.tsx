@@ -9,7 +9,7 @@ import { getCurrentRole } from '@/server/onboarding/current-role';
 export default async function AccountPage() {
   if (!(await getCurrentUser())) redirect('/sign-in');
   const role = await getCurrentRole();
-  if (role === 'organisation') redirect('/organisation/profile');
+  if (role === 'organisation') redirect('/organisation');
   if (role === 'adopter') redirect('/adopter/profile');
   redirect('/welcome');
 }

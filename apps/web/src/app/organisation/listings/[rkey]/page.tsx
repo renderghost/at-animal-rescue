@@ -49,7 +49,7 @@ export default async function EditListingPage({ params, searchParams }: Props) {
     return (
       <div className="max-w-2xl">
         <p className="mb-4">
-          <Link href="/organisation/listings">{t('backToList')}</Link>
+          <Link href="/organisation">{t('backToList')}</Link>
         </p>
         <p
           role="alert"
@@ -68,7 +68,7 @@ export default async function EditListingPage({ params, searchParams }: Props) {
   return (
     <div className="max-w-2xl">
       <p className="mb-4">
-        <Link href="/organisation/listings">{t('backToList')}</Link>
+        <Link href="/organisation">{t('backToList')}</Link>
       </p>
       <h1 className="mb-6 text-3xl font-bold">
         {t('editTitle', {
