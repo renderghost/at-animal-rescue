@@ -3,9 +3,8 @@ import { summarise, type CriterionLevel, type MatchState, type MatchSummary } fr
 
 export type Household = Partial<Omit<pet.homeward.adopter.household.Main, '$type'>>;
 export type ListingCriterion = NonNullable<pet.homeward.listing.Main['criteria']>[number];
-export type AdoptionFee = pet.homeward.listing.AdoptionFee;
 
-/** The criterion type without its NSID prefix, e.g. "childrenCriterion"; "fee" for the derived fee check. */
+/** The criterion type without its NSID prefix, e.g. "childrenCriterion". */
 export type CriterionKind = string;
 
 export interface CriterionEvaluation {
@@ -20,7 +19,6 @@ export interface CriterionEvaluation {
 
 export interface MatchInput {
   criteria?: readonly ListingCriterion[];
-  adoptionFee?: AdoptionFee;
   household?: Household;
   /** Distance between the adopter and the animal, when both locations are known. */
   distanceKm?: number;
@@ -46,18 +44,18 @@ function fromBoolean(value: boolean | undefined): MatchState {
 /**
  * Compares a listing's criteria with an adopter's household (spec §5). Pure and
  * deterministic: the same inputs always give the same, explainable result.
+ *
+ * The adoption fee is shown on the listing but not compared: adopters aren't asked for a
+ * budget (spec §2, Adopter profile).
  */
 export function evaluateMatch({
   criteria = [],
-  adoptionFee,
   household = {},
   distanceKm,
 }: MatchInput): MatchResult {
   const evaluations = criteria.map((criterion) =>
     evaluateCriterion(criterion as Record<string, unknown>, household, distanceKm),
   );
-  const fee = evaluateFee(adoptionFee, household);
-  if (fee) evaluations.push(fee);
   return { summary: summarise(evaluations), criteria: evaluations };
 }
 
@@ -162,26 +160,4 @@ function evaluateCriterion(
       // A criterion type this version doesn't know yet (open union): never guess.
       return result('unknown');
   }
-}
-
-/**
- * The adoption fee as a derived criterion: a fixed fee above the adopter's budget is a
- * requirement; a suggested donation is only a preference. Different currencies are not
- * converted, so they count as unknown.
- */
-function evaluateFee(fee: AdoptionFee | undefined, h: Household): CriterionEvaluation | undefined {
-  if (!fee?.amount || (fee.kind !== 'fee' && fee.kind !== 'donation')) return undefined;
-  const base = {
-    kind: 'fee',
-    level: (fee.kind === 'fee' ? 'required' : 'preferred') as CriterionLevel,
-    criterion: { kind: fee.kind, amount: fee.amount },
-  };
-  if (!h.maxFee || h.maxFee.currency !== fee.amount.currency) {
-    return { ...base, state: 'unknown', adopter: {} };
-  }
-  return {
-    ...base,
-    state: fee.amount.amount <= h.maxFee.amount ? 'match' : 'conflict',
-    adopter: { maxFee: h.maxFee },
-  };
 }

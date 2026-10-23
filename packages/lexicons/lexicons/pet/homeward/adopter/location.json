@@ -16,6 +16,12 @@
             "maxGraphemes": 100,
             "description": "What the adopter typed, e.g. a town or postcode district."
           },
+          "region": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "County, province or state of the place found. The only part an adopter's public profile may show, and only if they choose to publish one."
+          },
           "country": { "type": "string", "minLength": 2, "maxLength": 2 },
           "latitude": { "type": "string", "maxLength": 12 },
           "longitude": { "type": "string", "maxLength": 12 },

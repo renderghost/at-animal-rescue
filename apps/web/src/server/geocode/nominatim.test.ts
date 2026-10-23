@@ -66,6 +66,36 @@ describe('NominatimGeocoder', () => {
     );
   });
 
+  it('looks up postcodes as postcodes, falling back to a free-text search', async () => {
+    const district = {
+      lat: '51.5010',
+      lon: '-0.1416',
+      display_name: 'SW1A, London, England, United Kingdom',
+      address: {
+        postcode: 'SW1A',
+        state: 'England',
+        country: 'United Kingdom',
+        country_code: 'gb',
+      },
+    };
+    const { geocoder, fetch } = setup([[], [district]]);
+    expect(await geocoder.search({ text: 'SW1A', country: 'GB' })).toEqual([
+      {
+        label: 'SW1A, England, United Kingdom',
+        locality: 'SW1A',
+        region: 'England',
+        country: 'GB',
+        latitude: '51.50',
+        longitude: '-0.14',
+      },
+    ]);
+    const params = fetch.mock.calls.map(([url]) => Object.fromEntries((url as URL).searchParams));
+    expect(params[0]).toMatchObject({ postalcode: 'SW1A', countrycodes: 'gb' });
+    expect(params[0]).not.toHaveProperty('featureType');
+    expect(params[1]).toMatchObject({ q: 'SW1A', countrycodes: 'gb' });
+    expect(params[1]).not.toHaveProperty('featureType');
+  });
+
   it('serves repeats from the cache, ignoring case and spacing', async () => {
     const { geocoder, fetch } = setup();
     await geocoder.search({ text: 'Utrecht', country: 'NL' });

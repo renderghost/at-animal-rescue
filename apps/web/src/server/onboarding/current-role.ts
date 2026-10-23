@@ -13,20 +13,29 @@ export async function getRepoClient(): Promise<Client | undefined> {
   return session && new Client(session);
 }
 
-export type ProfileLookup =
-  { kind: 'found'; profile: OrganisationProfile } | { kind: 'missing' } | { kind: 'unavailable' };
+/** A record from the signed-in user's own repository, or why there isn't one. */
+export type RecordLookup<T> =
+  { kind: 'found'; record: T } | { kind: 'missing' } | { kind: 'unavailable' };
 
-/** The organisation profile in the signed-in user's own repository. */
-export async function loadOrganisationProfile(client: Client): Promise<ProfileLookup> {
+/** Reads one of the user's own records, telling "not there" apart from "PDS unreachable". */
+export async function lookupRecord<T extends { $type: string }>(
+  get: () => Promise<{ value: T }>,
+): Promise<RecordLookup<Omit<T, '$type'>>> {
   try {
-    const { value } = await client.get(pet.homeward.org.profile);
-    const { $type: _type, ...profile } = value;
-    return { kind: 'found', profile };
+    const { $type: _type, ...record } = (await get()).value;
+    return { kind: 'found', record };
   } catch (err) {
     if ((err as { error?: unknown }).error === 'RecordNotFound') return { kind: 'missing' };
-    console.warn('Could not load organisation profile from PDS', err);
+    console.warn('Could not read a record from the PDS', err);
     return { kind: 'unavailable' };
   }
+}
+
+/** The organisation profile in the signed-in user's own repository. */
+export function loadOrganisationProfile(
+  client: Client,
+): Promise<RecordLookup<OrganisationProfile>> {
+  return lookupRecord(() => client.get(pet.homeward.org.profile));
 }
 
 /** The signed-in user's role for this request (undefined if not onboarded yet). */

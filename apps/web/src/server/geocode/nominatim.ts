@@ -56,18 +56,33 @@ export class NominatimGeocoder implements Geocoder {
     const cached = this.cache.get(key);
     if (cached && cached.expires > this.now()) return cached.places;
 
-    const places = await this.throttled(() => this.request(q, country, language));
+    let places: GeocodedPlace[];
+    if (looksLikePostcode(q)) {
+      // A postcode or postcode district (e.g. SW1A, 3511). Coverage of partial postcodes
+      // varies by country, so fall back to a free-text search.
+      places = await this.throttled(() => this.request({ postalcode: q }, country, language));
+      if (places.length === 0) {
+        places = await this.throttled(() => this.request({ q }, country, language));
+      }
+    } else {
+      places = await this.throttled(() =>
+        this.request({ q, featureType: 'settlement' }, country, language),
+      );
+    }
     this.remember(key, places);
     return places;
   }
 
-  private async request(q: string, country?: string, language?: string): Promise<GeocodedPlace[]> {
+  private async request(
+    params: Record<string, string>,
+    country?: string,
+    language?: string,
+  ): Promise<GeocodedPlace[]> {
     const url = new URL('/search', this.options.baseUrl ?? 'https://nominatim.openstreetmap.org');
-    url.searchParams.set('q', q);
+    for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
     url.searchParams.set('format', 'jsonv2');
     url.searchParams.set('addressdetails', '1');
     url.searchParams.set('limit', '5');
-    url.searchParams.set('featureType', 'settlement');
     if (country) url.searchParams.set('countrycodes', country.toLowerCase());
     if (language) url.searchParams.set('accept-language', language);
 
@@ -113,9 +128,15 @@ export class NominatimGeocoder implements Geocoder {
   }
 }
 
+/** Postcodes contain a digit; town names almost never do. */
+function looksLikePostcode(text: string): boolean {
+  return /\d/.test(text);
+}
+
 function toPlace(result: NominatimResult): GeocodedPlace | undefined {
   const address = result.address ?? {};
-  const locality = LOCALITY_KEYS.map((k) => address[k]).find(Boolean);
+  // A postcode area may have no town of its own; its postcode names it instead.
+  const locality = LOCALITY_KEYS.map((k) => address[k]).find(Boolean) ?? address.postcode;
   const country = address.country_code?.toUpperCase();
   const latitude = Number(result.lat);
   const longitude = Number(result.lon);

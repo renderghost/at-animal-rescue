@@ -41,6 +41,9 @@ export async function resolvePlace(
   const matches = results.filter((place) => sameName(place.locality, query.locality));
   if (matches.length === 1) return { kind: 'found', place: matches[0]! };
   if (matches.length > 1) return { kind: 'ambiguous', choices: matches };
+  // A postcode is named after itself, not a town: one result is the one they meant.
+  if (results.length === 1 && /\d/.test(query.locality))
+    return { kind: 'found', place: results[0]! };
   // The geocoder knows the place under another name (e.g. a different language): let them pick.
   if (results.length > 0) return { kind: 'ambiguous', choices: results };
   return { kind: 'notFound' };

@@ -3,7 +3,7 @@
 Pure matching logic (spec §5): compares a listing's criteria with an adopter's private household answers and explains every result. No I/O; the same inputs always give the same result.
 
 ```ts
-const { summary, criteria } = evaluateMatch({ criteria, adoptionFee, household, distanceKm });
+const { summary, criteria } = evaluateMatch({ criteria, household, distanceKm });
 // summary: 'strong' | 'possible' | 'conflicts'
 // criteria[i]: { kind, level, state: 'match' | 'conflict' | 'unknown', criterion, adopter }
 ```
@@ -25,9 +25,9 @@ const { summary, criteria } = evaluateMatch({ criteria, adoptionFee, household, 
 | Medical care, diet, behavioural support | Willing                                                 | Not willing                            |
 | Distance                                | Within the maximum distance                             | Further away                           |
 | Home visit, several visits              | Agrees                                                  | Doesn't                                |
-| **Fee** (derived)                       | Fee ≤ adopter's maximum (same currency)                 | More than their maximum                |
 
-- **Levels:** each criterion is `required` or `preferred`; any other value counts as preferred. A fixed adoption fee counts as required; a suggested donation as preferred. Different currencies aren't converted, so they're unknown.
+- **Levels:** each criterion is `required` or `preferred`; any other value counts as preferred.
+- **Adoption fee:** shown on the listing, never compared. Adopters aren't asked for a budget, so the household's `maxFee` is unused.
 - **New criterion types** this version doesn't know are reported as unknown, never guessed.
 - **Summary:** any required conflict → `conflicts`. Every required criterion matched, no preferred conflicts and at least one match → `strong`. Anything else → `possible`.
 - **Privacy:** results carry the adopter's answers only when they were actually compared, never for unknowns. The adopter sees them; an organisation sees them only through a share link the adopter sends (#42).

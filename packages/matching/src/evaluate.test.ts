@@ -121,41 +121,6 @@ describe('logistics criteria', () => {
   });
 });
 
-describe('adoption fee', () => {
-  const household: Household = { maxFee: { amount: 10000, currency: 'EUR' } };
-
-  it('a fixed fee over budget is a required conflict', () => {
-    const { criteria, summary } = evaluateMatch({
-      adoptionFee: { kind: 'fee', amount: { amount: 15000, currency: 'EUR' } },
-      household,
-    });
-    expect(criteria).toEqual([
-      expect.objectContaining({ kind: 'fee', level: 'required', state: 'conflict' }),
-    ]);
-    expect(summary).toBe('conflicts');
-  });
-
-  it('a suggested donation over budget is only a preference', () => {
-    const { criteria } = evaluateMatch({
-      adoptionFee: { kind: 'donation', amount: { amount: 15000, currency: 'EUR' } },
-      household,
-    });
-    expect(criteria[0]).toMatchObject({ level: 'preferred', state: 'conflict' });
-  });
-
-  it('does not convert currencies', () => {
-    const { criteria } = evaluateMatch({
-      adoptionFee: { kind: 'fee', amount: { amount: 5000, currency: 'GBP' } },
-      household,
-    });
-    expect(criteria[0]!.state).toBe('unknown');
-  });
-
-  it('adds no check when there is no fee', () => {
-    expect(evaluateMatch({ adoptionFee: { kind: 'none' }, household }).criteria).toEqual([]);
-  });
-});
-
 describe('evaluateMatch', () => {
   it('treats unknown levels as preferred and unknown criterion types as unknown', () => {
     const { criteria } = evaluateMatch({

@@ -24,5 +24,5 @@ export async function updateOrganisationProfile(
     return { status: 'error', errors: {}, values, publishFailed: true };
   }
 
-  return saveOrganisationProfile(client, form, existing.profile);
+  return saveOrganisationProfile(client, form, existing.record);
 }
