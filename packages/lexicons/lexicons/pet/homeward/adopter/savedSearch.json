@@ -31,8 +31,50 @@
             "maxLength": 3,
             "items": { "type": "string", "maxLength": 32 }
           },
-          "bondedOnly": { "type": "boolean" },
-          "maxKm": { "type": "integer", "minimum": 1, "maximum": 5000 },
+          "bondedOnly": {
+            "type": "boolean",
+            "description": "Older form of together=bonded; readers still accept it."
+          },
+          "together": {
+            "type": "string",
+            "maxLength": 32,
+            "knownValues": ["bonded", "single"],
+            "description": "Only bonded groups, or only single animals. Absent: either."
+          },
+          "fees": {
+            "type": "array",
+            "maxLength": 3,
+            "items": {
+              "type": "string",
+              "maxLength": 32,
+              "knownValues": ["none", "donation", "fee"]
+            },
+            "description": "Adoption fee kinds to include."
+          },
+          "near": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "A town or postcode the adopter typed to search near, instead of their own location."
+          },
+          "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "ISO 3166-1 alpha-2 country of the typed place."
+          },
+          "place": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 300,
+            "description": "The place chosen when the typed name matched several."
+          },
+          "maxKm": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000,
+            "description": "Maximum distance in km, converted from the adopter's own unit."
+          },
           "hideConflicts": { "type": "boolean" },
           "sort": {
             "type": "string",
