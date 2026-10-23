@@ -5,6 +5,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { createDb } from './index';
 import { IndexStore, parseCoordinates } from './index-store';
 import { indexListings, indexOrgs } from './schema';
+import { findOrg } from './orgs';
 import { searchListings } from './search';
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -81,30 +82,127 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
   const uris = (page: Awaited<ReturnType<typeof searchListings>>) =>
     page.listings.map((l) => l.uri);
 
-  it('holds new listings from untrusted organisations for review', async () => {
+  it('keeps listings private until the organisation is approved, and again if revoked', async () => {
     const org = await seedOrg({ trusted: false });
     await store.upsertAnimal(org.animal('a1'), animalRecord({}), 'c');
     await store.upsertListing(org.listing('l1'), listingRecord([org.animal('a1')]), 'c');
+    await store.upsertListing(org.listing('l2'), listingRecord([org.animal('a1')]), 'c');
 
     expect(uris(await searchListings(db, { orgDid: org.did }))).toEqual([]);
     const own = await searchListings(db, { orgDid: org.did, includeUnmoderated: true });
-    expect(own.listings[0]).toMatchObject({ uri: org.listing('l1'), moderation: 'pending' });
+    expect(own.listings).toHaveLength(2);
+    expect(own.listings[0]).toMatchObject({ orgApproved: false, moderation: 'visible' });
+
+    // Approving the organisation releases every listing at once.
+    await db.update(indexOrgs).set({ trusted: true }).where(eq(indexOrgs.did, org.did));
+    expect(await searchListings(db, { orgDid: org.did })).toMatchObject({
+      listings: [{ orgApproved: true }, { orgApproved: true }],
+    });
+
+    await db.update(indexOrgs).set({ trusted: false }).where(eq(indexOrgs.did, org.did));
+    expect(uris(await searchListings(db, { orgDid: org.did }))).toEqual([]);
   });
 
-  it('keeps the moderation state when a listing is edited', async () => {
-    const org = await seedOrg({ trusted: false });
+  it('keeps a listing hidden after a report, even when it is edited', async () => {
+    const org = await seedOrg();
     await store.upsertAnimal(org.animal('a1'), animalRecord({}), 'c');
     await store.upsertListing(org.listing('l1'), listingRecord([org.animal('a1')]), 'c');
     await db
       .update(indexListings)
-      .set({ moderation: 'approved' })
+      .set({ moderation: 'hidden' })
       .where(eq(indexListings.uri, org.listing('l1')));
     await store.upsertListing(
       org.listing('l1'),
       listingRecord([org.animal('a1')], { title: 'Edited' }),
       'c2',
     );
-    expect(uris(await searchListings(db, { orgDid: org.did }))).toEqual([org.listing('l1')]);
+    expect(uris(await searchListings(db, { orgDid: org.did }))).toEqual([]);
+    const own = await searchListings(db, { orgDid: org.did, includeUnmoderated: true });
+    expect(own.listings[0]).toMatchObject({ moderation: 'hidden' });
+  });
+
+  it('filters by age group, worked out per species', async () => {
+    const org = await seedOrg();
+    const now = new Date('2026-10-23T00:00:00.000Z');
+    // A 3-year-old rabbit is an adult (young under 1, senior from 5); a 3-year-old dog too
+    // (young under 2, senior from 8); a 6-year-old rabbit is a senior.
+    await store.upsertAnimal(
+      org.animal('r3'),
+      animalRecord({ birth: { date: '2023-10', estimated: true } }),
+      'c',
+    );
+    await store.upsertAnimal(org.animal('r6'), animalRecord({ birth: { date: '2020' } }), 'c');
+    await store.upsertAnimal(
+      org.animal('d1'),
+      animalRecord({ species: 'dog', birth: { date: '2025-12-01' } }),
+      'c',
+    );
+    await store.upsertAnimal(org.animal('x'), animalRecord({}), 'c');
+    for (const key of ['r3', 'r6', 'd1', 'x']) {
+      await store.upsertListing(org.listing(key), listingRecord([org.animal(key)]), 'c');
+    }
+    const ages = async (ageGroups: Array<'young' | 'adult' | 'senior'>, species?: string[]) =>
+      uris(await searchListings(db, { orgDid: org.did, ageGroups, species, now })).sort();
+
+    expect(await ages(['adult'])).toEqual([org.listing('r3')]);
+    expect(await ages(['senior'])).toEqual([org.listing('r6')]);
+    expect(await ages(['young'])).toEqual([org.listing('d1')]);
+    expect(await ages(['young', 'senior'], ['rabbit'])).toEqual([org.listing('r6')]);
+  });
+
+  it('filters by what listings state, never guessing', async () => {
+    const org = await seedOrg();
+    await store.upsertAnimal(org.animal('a'), animalRecord({}), 'c');
+    const criterion = (type: string, fields: Record<string, unknown>) => ({
+      $type: `pet.homeward.listing#${type}`,
+      level: 'required',
+      ...fields,
+    });
+    await store.upsertListing(
+      org.listing('kids-cats-flat'),
+      listingRecord([org.animal('a')], {
+        criteria: [
+          criterion('childrenCriterion', { allowed: true, minAge: 8 }),
+          criterion('otherAnimalsCriterion', { animal: 'cat', allowed: true }),
+          criterion('homeTypeCriterion', { allowed: ['flat', 'house'] }),
+        ],
+      }),
+      'c',
+    );
+    await store.upsertListing(
+      org.listing('adults-only'),
+      listingRecord([org.animal('a')], {
+        criteria: [
+          criterion('childrenCriterion', { allowed: false }),
+          criterion('experienceCriterion', { minimum: 'none' }),
+        ],
+      }),
+      'c',
+    );
+    await store.upsertListing(org.listing('unstated'), listingRecord([org.animal('a')]), 'c');
+    const stated = async (
+      criteria: Array<'children' | 'cats' | 'dogs' | 'flat' | 'firstTimeOwners'>,
+    ) => uris(await searchListings(db, { orgDid: org.did, criteria })).sort();
+
+    expect(await stated(['children'])).toEqual([org.listing('kids-cats-flat')]);
+    expect(await stated(['children', 'cats', 'flat'])).toEqual([org.listing('kids-cats-flat')]);
+    expect(await stated(['dogs'])).toEqual([]);
+    expect(await stated(['firstTimeOwners'])).toEqual([org.listing('adults-only')]);
+  });
+
+  it('finds an organisation by DID or verified handle, ignoring case', async () => {
+    const org = await seedOrg({ trusted: false });
+    expect(await findOrg(db, { did: org.did })).toMatchObject({
+      did: org.did,
+      handle: 'test.example.org',
+      approved: false,
+      record: { displayName: 'Test Rescue' },
+    });
+    // Every seeded organisation shares the handle; any of them proves the lookup.
+    expect(await findOrg(db, { handle: 'TEST.example.org' })).toMatchObject({
+      handle: 'test.example.org',
+    });
+    expect(await findOrg(db, { handle: 'nobody.example.org' })).toBeUndefined();
   });
 
   it('ignores animals from other repositories', async () => {

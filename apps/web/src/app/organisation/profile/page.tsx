@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { OrganisationProfileForm } from '@/components/OrganisationProfileForm';
@@ -14,7 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function OrganisationProfilePage() {
-  if (!(await getCurrentUser())) redirect('/sign-in');
+  const user = await getCurrentUser();
+  if (!user) redirect('/sign-in');
   const client = await getRepoClient();
   if (!client) redirect('/sign-in');
   // The profile is read from the organisation's own repository, so edits made elsewhere show.
@@ -26,7 +28,10 @@ export default async function OrganisationProfilePage() {
   return (
     <div className="max-w-2xl">
       <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
-      <p className="mb-8">{t('intro')}</p>
+      <p className="mb-2">{t('intro')}</p>
+      <p className="mb-8">
+        <Link href={`/org/${encodeURIComponent(user.did)}`}>{t('viewPublic')}</Link>
+      </p>
       {lookup.kind === 'found' ? (
         <OrganisationProfileForm
           initialValues={profileToFormValues(lookup.record)}

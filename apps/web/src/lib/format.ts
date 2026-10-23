@@ -43,3 +43,22 @@ export function formatDistance(km: number, unit: DistanceUnit, locale: string): 
     maximumFractionDigits: value < 10 ? 1 : 0,
   }).format(value);
 }
+
+/** Formats an amount stored in minor units (pence, cents) in its currency. */
+export function formatMoney(minorUnits: number, currency: string, locale: string): string {
+  try {
+    const format = new Intl.NumberFormat(locale, { style: 'currency', currency });
+    const digits = format.resolvedOptions().maximumFractionDigits ?? 2;
+    const amount = minorUnits / 10 ** digits;
+    // Whole amounts without decimals: "€75", not "€75.00".
+    return Number.isInteger(amount)
+      ? new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency,
+          maximumFractionDigits: 0,
+        }).format(amount)
+      : format.format(amount);
+  } catch {
+    return `${(minorUnits / 100).toFixed(2)} ${currency}`;
+  }
+}

@@ -1,5 +1,5 @@
 import { lexToJson } from '@atproto/lex';
-import type { pet } from '@homeward/lexicons';
+import { parseBirthDate, type pet } from '@homeward/lexicons';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from './index';
 import { indexAnimals, indexListings, indexOrgs } from './schema';
@@ -89,6 +89,7 @@ export class IndexStore {
       sex: record.sex ?? null,
       size: record.size ?? null,
       birthDate: record.birth?.date ?? null,
+      birthEstimate: parseBirthDate(record.birth?.date)?.toISOString().slice(0, 10) ?? null,
       breeds: record.breeds ?? [],
       record: lexToJson(record),
       cid,
@@ -111,7 +112,6 @@ export class IndexStore {
         .select({
           latitude: indexOrgs.latitude,
           longitude: indexOrgs.longitude,
-          trusted: indexOrgs.trusted,
         })
         .from(indexOrgs)
         .where(eq(indexOrgs.did, did))
@@ -137,9 +137,8 @@ export class IndexStore {
       };
       await tx
         .insert(indexListings)
-        // New listings from organisations not yet trusted wait for review (#43).
-        .values({ uri, ...values, moderation: org?.trusted ? 'approved' : 'pending' })
-        // Edits keep the current moderation state.
+        .values({ uri, ...values })
+        // Edits keep the moderation state, so a listing hidden after a report stays hidden.
         .onConflictDoUpdate({ target: indexListings.uri, set: values });
     });
   }
