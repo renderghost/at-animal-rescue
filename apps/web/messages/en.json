@@ -1106,5 +1106,40 @@
       "awaitingApproval": "Your organisation is awaiting review, so your listings aren't public yet.",
       "hiddenAfterReport": "It's hidden after a report."
     }
+  },
+  "CrossPost": {
+    "heading": "Post on Bluesky",
+    "publishCheckbox": "Also post on Bluesky",
+    "publishHint": "From your organisation's account, with a link card to the listing and its cover photo.",
+    "awaitingHint": "Your organisation is awaiting review, so the listing isn't public yet: a post now would link to a page nobody else can see.",
+    "text": "Post text",
+    "textHint": "Up to 300 characters. Hashtags help people find it.",
+    "post": "Post on Bluesky",
+    "posted": "Posted on Bluesky.",
+    "viewPost": "See the post on Bluesky",
+    "editorBody": "This listing hasn't been posted on Bluesky yet.",
+    "suggested": "{title} {count, plural, one {is} other {are}} looking for a home near {place}.",
+    "adoptTag": "#AdoptDontShop",
+    "tags": {
+      "dog": "#RescueDog",
+      "cat": "#RescueCat",
+      "rabbit": "#Rabbits",
+      "guineaPig": "#GuineaPigs",
+      "hamster": "#Hamsters",
+      "gerbil": "#Gerbils",
+      "rat": "#PetRats",
+      "mouse": "#PetMice",
+      "chinchilla": "#Chinchillas",
+      "degu": "#Degus",
+      "ferret": "#Ferrets"
+    },
+    "errors": {
+      "empty": "Write something to post.",
+      "tooLong": "Keep the post to 300 characters or fewer.",
+      "alreadyPosted": "This listing has already been posted on Bluesky.",
+      "notPublished": "Publish the listing first.",
+      "unavailable": "We couldn't reach your account, so nothing was posted. Please try again."
+    },
+    "publishedNotPosted": "Published, but we couldn't post on Bluesky. You can try again below."
   }
 }

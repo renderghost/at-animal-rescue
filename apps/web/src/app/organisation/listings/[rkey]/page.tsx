@@ -3,9 +3,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { deleteListingDraftAction } from '@/app/actions/listings';
+import { crossPostAction, deleteListingDraftAction } from '@/app/actions/listings';
 import { Button, ButtonLink } from '@/components/Button';
 import { CriteriaList } from '@/components/CriteriaList';
+import { CrossPostFields } from '@/components/CrossPostFields';
 import { ExampleHomes } from '@/components/ExampleHomes';
 import { ListingForm } from '@/components/ListingForm';
 import { getPreferences } from '@/i18n/preferences';
@@ -13,11 +14,18 @@ import { listAnimals } from '@/server/animals/animals';
 import { requireOrganisation } from '@/server/animals/current-org';
 import { editorOptions } from '@/server/listings/editor-options';
 import { listingTitle, listingToFormValues } from '@/server/listings/listing-form';
+import { suggestedPostText } from '@/server/listings/cross-post';
 import { loadListing } from '@/server/listings/listings';
+import { postUrl } from '@/server/listings/post-text';
 
 type Props = {
   params: Promise<{ rkey: string }>;
-  searchParams: Promise<{ created?: string; published?: string }>;
+  searchParams: Promise<{
+    created?: string;
+    published?: string;
+    posted?: string;
+    postError?: string;
+  }>;
 };
 
 async function load(rkey: string) {
@@ -43,7 +51,8 @@ export default async function EditListingPage({ params, searchParams }: Props) {
   const { did, client, listing } = await load(rkey);
   if (listing.kind === 'missing') notFound();
   const t = await getTranslations('ListingEditor');
-  const { created, published: justPublished } = await searchParams;
+  const { created, published: justPublished, posted, postError } = await searchParams;
+  const crossPost = await getTranslations('CrossPost');
 
   if (listing.kind === 'unavailable') {
     return (
@@ -75,12 +84,20 @@ export default async function EditListingPage({ params, searchParams }: Props) {
           title: listingTitle(did, record, options.animals, (await getPreferences()).formatLocale),
         })}
       </h1>
-      {justPublished && (
+      {(justPublished || posted) && (
         <p
           role="status"
           className="mb-6 rounded-md border border-match-line bg-match-soft p-4 text-match"
         >
-          {t('published')}
+          {justPublished && t('published')} {posted && crossPost('posted')}
+        </p>
+      )}
+      {justPublished && postError && (
+        <p
+          role="alert"
+          className="mb-6 rounded-md border border-conflict-line bg-conflict-soft p-4 text-conflict"
+        >
+          {crossPost('publishedNotPosted')}
         </p>
       )}
       <ListingForm
@@ -102,6 +119,30 @@ export default async function EditListingPage({ params, searchParams }: Props) {
         {criteria.length > 0 ? <CriteriaList criteria={criteria} /> : <p>{t('previewNone')}</p>}
         <ExampleHomes criteria={criteria} />
       </section>
+
+      {published && (
+        <section aria-labelledby="bluesky" className="mt-12 border-t border-line pt-6">
+          <h2 id="bluesky" className="mb-2 text-xl font-bold">
+            {crossPost('heading')}
+          </h2>
+          {record.crossPost ? (
+            <p>
+              {crossPost('posted')}{' '}
+              <a href={postUrl(record.crossPost.uri)}>{crossPost('viewPost')}</a>
+            </p>
+          ) : (
+            <form action={crossPostAction}>
+              <input type="hidden" name="$rkey" value={rkey} />
+              <p className="mb-4">{crossPost('editorBody')}</p>
+              <CrossPostFields
+                suggested={await suggestedPostText(did, client, rkey)}
+                error={postError}
+              />
+              <Button type="submit">{crossPost('post')}</Button>
+            </form>
+          )}
+        </section>
+      )}
 
       {!published && (
         <>

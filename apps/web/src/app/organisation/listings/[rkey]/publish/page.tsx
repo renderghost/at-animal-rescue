@@ -8,6 +8,7 @@ import { publishListingAction } from '@/app/actions/listings';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { CriteriaList } from '@/components/CriteriaList';
+import { CrossPostFields } from '@/components/CrossPostFields';
 import { FormAlert } from '@/components/FormAlert';
 import { getPreferences } from '@/i18n/preferences';
 import { formatMoney } from '@/lib/format';
@@ -15,6 +16,7 @@ import { listAnimals, loadAnimal, photoCid } from '@/server/animals/animals';
 import { requireOrganisation } from '@/server/animals/current-org';
 import { getDb } from '@/server/db';
 import { animalKey, listingTitle, publishProblems } from '@/server/listings/listing-form';
+import { suggestedPostText } from '@/server/listings/cross-post';
 import { loadListing } from '@/server/listings/listings';
 
 type Props = {
@@ -23,6 +25,7 @@ type Props = {
 };
 
 const ERRORS = ['missing', 'notReady', 'conflict', 'unavailable', 'photoMissing'] as const;
+const POST_ERRORS = ['post-empty', 'post-tooLong'] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ListingPublish');
@@ -42,6 +45,7 @@ export default async function PublishListingPage({ params, searchParams }: Props
   const { formatLocale: locale } = await getPreferences();
   const { error } = await searchParams;
   const shownError = ERRORS.find((reason) => reason === error);
+  const postError = POST_ERRORS.find((reason) => reason === error);
   const back = (
     <p className="mb-4">
       <Link href={`/organisation/listings/${rkey}`}>{t('backToEdit')}</Link>
@@ -187,6 +191,13 @@ export default async function PublishListingPage({ params, searchParams }: Props
         <form action={publishListingAction}>
           <input type="hidden" name="$rkey" value={rkey} />
           {!org?.approved && <p className="mb-4">{t('awaitingReview')}</p>}
+          <CrossPostFields
+            withCheckbox
+            checked={Boolean(org?.approved)}
+            suggested={await suggestedPostText(did, client, rkey)}
+            awaitingReview={!org?.approved}
+            error={postError && postError.replace('post-', '')}
+          />
           <Button type="submit">{t('publish')}</Button>
         </form>
       )}

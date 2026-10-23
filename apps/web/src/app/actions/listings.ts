@@ -5,6 +5,7 @@ import { newRecordKey } from '@homeward/db';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireOrganisation } from '@/server/animals/current-org';
+import { crossPostListing } from '@/server/listings/cross-post';
 import {
   changeListingStatus,
   deleteListingDraft,
@@ -13,6 +14,7 @@ import {
   saveListing,
   type ListingFormState,
 } from '@/server/listings/listings';
+import { checkPostText } from '@/server/listings/post-text';
 
 function listingKey(form: FormData): string {
   const rkey = form.get('$rkey');
@@ -36,13 +38,35 @@ export async function saveListingAction(
   return result;
 }
 
-/** Publishes a draft listing from its preview page. */
+/** Publishes a draft listing from its preview page, and posts it on Bluesky if asked (#36). */
 export async function publishListingAction(form: FormData): Promise<void> {
   const { did, client } = await requireOrganisation();
   const rkey = listingKey(form);
+  const post = form.get('crossPost') === 'on' ? String(form.get('postText') ?? '') : undefined;
+  // A post that can't go out stops the publish, so nothing happens by halves.
+  const problem = post !== undefined && checkPostText(post);
+  if (problem) redirect(`/organisation/listings/${rkey}/publish?error=post-${problem}`);
   const result = await publishDraftListing(did, client, rkey);
   if (!result.ok) redirect(`/organisation/listings/${rkey}/publish?error=${result.reason}`);
-  redirect(`/organisation/listings/${rkey}?published=1`);
+  if (post === undefined) redirect(`/organisation/listings/${rkey}?published=1`);
+  const posted = await crossPostListing(did, client, rkey, post);
+  redirect(
+    posted.ok
+      ? `/organisation/listings/${rkey}?published=1&posted=1`
+      : `/organisation/listings/${rkey}?published=1&postError=${posted.reason}`,
+  );
+}
+
+/** Posts a published listing on Bluesky from its editor (#36). */
+export async function crossPostAction(form: FormData): Promise<void> {
+  const { did, client } = await requireOrganisation();
+  const rkey = listingKey(form);
+  const result = await crossPostListing(did, client, rkey, String(form.get('postText') ?? ''));
+  redirect(
+    result.ok
+      ? `/organisation/listings/${rkey}?posted=1`
+      : `/organisation/listings/${rkey}?postError=${result.reason}`,
+  );
 }
 
 export async function deleteListingDraftAction(form: FormData): Promise<void> {
