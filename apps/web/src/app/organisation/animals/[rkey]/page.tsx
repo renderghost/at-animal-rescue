@@ -4,9 +4,10 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { deleteAnimalDraft } from '@/app/actions/animals';
 import { AnimalForm } from '@/components/AnimalForm';
+import { AnimalMedia } from '@/components/AnimalMedia';
 import { Button } from '@/components/Button';
 import { animalToFormValues } from '@/server/animals/animal-form';
-import { isAnimalKey, loadAnimal } from '@/server/animals/animals';
+import { isAnimalKey, loadAnimal, photoCid } from '@/server/animals/animals';
 import { requireOrganisation } from '@/server/animals/current-org';
 
 type Props = {
@@ -57,6 +58,17 @@ export default async function EditAnimalPage({ params, searchParams }: Props) {
             initialValues={animalToFormValues(animal.record, animal.identification)}
             published={animal.published}
             justCreated={Boolean(created)}
+          />
+          <AnimalMedia
+            rkey={rkey}
+            published={animal.published}
+            photos={(animal.record.photos ?? []).map((photo) => ({
+              cid: photoCid(photo),
+              alt: photo.alt,
+              width: photo.aspectRatio?.width,
+              height: photo.aspectRatio?.height,
+            }))}
+            videos={animal.record.videos ?? []}
           />
           {!animal.published && (
             // Two deliberate steps, without JavaScript: open the panel, then confirm.

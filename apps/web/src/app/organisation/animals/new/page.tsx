@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NewAnimalPage() {
   await requireOrganisation();
   const t = await getTranslations('AnimalEditor');
+  const media = await getTranslations('AnimalMedia');
   return (
     <div className="max-w-2xl">
       <p className="mb-4">
@@ -19,6 +20,7 @@ export default async function NewAnimalPage() {
       </p>
       <h1 className="mb-6 text-3xl font-bold">{t('newTitle')}</h1>
       <AnimalForm />
+      <p className="mt-10 border-t border-line pt-6 text-muted">{media('saveFirst')}</p>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { TID } from '@atproto/common-web';
+import { jsonToLex, lexToJson } from '@atproto/lex';
 import { isValidDid, isValidRecordKey, isValidTid } from '@atproto/syntax';
 import { pet } from '@homeward/lexicons';
 import { and, asc, eq, gt, ne, sql } from 'drizzle-orm';
@@ -138,7 +139,8 @@ export class PostgresPrivateStore implements PrivateStore {
     }
     const sealed = seal(
       this.keyring,
-      Buffer.from(JSON.stringify(record), 'utf8'),
+      // atproto JSON, so blob references and CIDs (e.g. a draft's photos) survive the round trip.
+      Buffer.from(JSON.stringify(lexToJson(record)), 'utf8'),
       associatedData(did, collection, rkey),
     );
     const values = { keyId: sealed.keyId, iv: sealed.iv, ciphertext: sealed.data };
@@ -281,6 +283,6 @@ export class PostgresPrivateStore implements PrivateStore {
   }
 
   private decrypt(row: typeof privateRecords.$inferSelect): unknown {
-    return JSON.parse(this.open(row).toString('utf8'));
+    return jsonToLex(JSON.parse(this.open(row).toString('utf8')));
   }
 }
