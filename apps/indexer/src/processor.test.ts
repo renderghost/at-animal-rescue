@@ -64,7 +64,7 @@ describe.runIf(databaseUrl)('processEvent', () => {
         createdAt,
       }),
     );
-    // Not trusted yet, so pending: look with includeUnmoderated.
+    // The organisation isn't approved yet, so look with includeUnmoderated.
     return searchListings(db, { orgDid: t.did, includeUnmoderated: true });
   }
 

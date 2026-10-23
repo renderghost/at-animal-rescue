@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   customType,
+  date,
   doublePrecision,
   index,
   integer,
@@ -75,7 +76,10 @@ export const indexOrgs = pgTable('index_orgs', {
   country: text().notNull(),
   latitude: doublePrecision(),
   longitude: doublePrecision(),
-  /** Set by moderators once an organisation's listings no longer need review (#43). */
+  /**
+   * Set when a moderator approves the organisation (#43). Until then none of its listings
+   * are public; revoking approval hides them all again. Checked at query time.
+   */
   trusted: boolean().notNull().default(false),
   record: jsonb().notNull(),
   cid: text().notNull(),
@@ -93,6 +97,8 @@ export const indexAnimals = pgTable(
     sex: text(),
     size: text(),
     birthDate: text('birth_date'),
+    /** The birth date as a date (partial dates estimated), for age-group filters. */
+    birthEstimate: date('birth_estimate', { mode: 'string' }),
     breeds: text()
       .array()
       .notNull()
@@ -129,8 +135,11 @@ export const indexListings = pgTable(
     /** Effective location: the override, else the organisation's. Kept in sync on upsert. */
     latitude: doublePrecision(),
     longitude: doublePrecision(),
-    /** pending until approved (#43); hidden after a successful report (#44). */
-    moderation: text().notNull().default('pending'),
+    /**
+     * 'visible', or 'hidden' after a successful report (#44). Whether the organisation is
+     * approved is checked separately, on index_orgs.trusted.
+     */
+    moderation: text().notNull().default('visible'),
     record: jsonb().notNull(),
     cid: text().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { distanceUnit, formatDistance, formatLocale } from './format';
+import { distanceUnit, formatDistance, formatLocale, formatMoney } from './format';
 
 describe('distanceUnit', () => {
   it('uses miles in the UK and kilometres elsewhere', () => {
@@ -45,5 +45,17 @@ describe('formatDistance', () => {
 
   it('rounds longer distances', () => {
     expect(formatDistance(42.4, 'kilometer', 'en-NL')).toBe('42 km');
+  });
+});
+
+describe('formatMoney', () => {
+  it('formats minor units in the currency, dropping .00 on whole amounts', () => {
+    expect(formatMoney(7500, 'EUR', 'en-NL')).toBe('€75');
+    expect(formatMoney(12550, 'GBP', 'en-GB')).toBe('£125.50');
+    expect(formatMoney(5000, 'JPY', 'en-GB')).toBe('JP¥5,000');
+  });
+
+  it('copes with an unknown currency code', () => {
+    expect(formatMoney(1000, 'XX', 'en-GB')).toBe('10.00 XX');
   });
 });
