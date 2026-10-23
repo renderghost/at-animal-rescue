@@ -17,6 +17,8 @@ export interface ProcessorDependencies {
   knownDids: Set<string>;
   /** Looks up an account's verified handle, if it can. */
   resolveHandle?: (did: string) => Promise<string | undefined>;
+  /** Called when an organisation's profile or identity changes, e.g. to re-check its facts. */
+  onOrgChanged?: (did: string) => void;
   log: Logger;
 }
 
@@ -28,8 +30,11 @@ export async function processEvent(event: JetstreamEvent, deps: ProcessorDepende
   const { store, knownDids, log } = deps;
 
   if (event.kind === 'identity') {
-    if (knownDids.has(event.did) && event.identity.handle) {
-      await store.updateHandle(event.did, event.identity.handle);
+    if (knownDids.has(event.did)) {
+      // Don't trust the event's handle (it may be "handle.invalid"): check it both ways.
+      const handle = await deps.resolveHandle?.(event.did).catch(() => undefined);
+      await store.updateHandle(event.did, handle ?? null);
+      deps.onOrgChanged?.(event.did);
     }
     return;
   }
@@ -69,6 +74,7 @@ export async function processEvent(event: JetstreamEvent, deps: ProcessorDepende
       const handle = await deps.resolveHandle?.(did).catch(() => undefined);
       await store.upsertOrg(did, parsed.value, commit.cid, handle);
       knownDids.add(did);
+      deps.onOrgChanged?.(did);
       return;
     }
     case 'pet.homeward.animal': {

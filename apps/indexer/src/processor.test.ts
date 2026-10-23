@@ -19,7 +19,9 @@ describe.runIf(databaseUrl)('processEvent', () => {
     await db.close();
   });
 
-  function setup(resolveHandle = async () => 'rescue.example.org') {
+  function setup(
+    resolveHandle: (did: string) => Promise<string | undefined> = async () => 'rescue.example.org',
+  ) {
     const did = `did:plc:ix${randomBytes(8).toString('hex')}`;
     dids.push(did);
     const deps: ProcessorDependencies = { store, knownDids: new Set(), resolveHandle, log };
@@ -122,17 +124,30 @@ describe.runIf(databaseUrl)('processEvent', () => {
     expect(t.deps.knownDids.has(t.did)).toBe(false);
   });
 
-  it('follows handle changes for known accounts only', async () => {
-    const t = setup();
-    await t.apply(t.commit('pet.homeward.org.profile', 'self', org));
-    await t.apply({
+  it('follows handle changes for known accounts, checking each one both ways', async () => {
+    let current: string | undefined = 'rescue.example.org';
+    const t = setup(async () => current);
+    const changed: string[] = [];
+    t.deps.onOrgChanged = (did) => changed.push(did);
+    const identity = (handle: string, seq: number): JetstreamEvent => ({
       kind: 'identity',
       did: t.did,
-      time_us: 99,
-      identity: { did: t.did, handle: 'hillfarm.example', seq: 1, time: createdAt },
+      time_us: 99 + seq,
+      identity: { did: t.did, handle, seq, time: createdAt },
     });
-    const [row] = await db.select().from(schema.indexOrgs).where(eq(schema.indexOrgs.did, t.did));
-    expect(row!.handle).toBe('hillfarm.example');
+    const handle = async () =>
+      (await db.select().from(schema.indexOrgs).where(eq(schema.indexOrgs.did, t.did)))[0]!.handle;
+
+    await t.apply(t.commit('pet.homeward.org.profile', 'self', org));
+    current = 'hillfarm.example';
+    await t.apply(identity('hillfarm.example', 1));
+    expect(await handle()).toBe('hillfarm.example');
+
+    // The event's handle is never taken on trust, e.g. "handle.invalid" from a relay.
+    current = undefined;
+    await t.apply(identity('handle.invalid', 2));
+    expect(await handle()).toBeNull();
+    expect(changed).toEqual([t.did, t.did, t.did]);
   });
 
   it('ignores identity and account events for accounts it does not know, without touching the database', async () => {

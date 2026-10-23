@@ -4,13 +4,14 @@ import { getTranslations } from 'next-intl/server';
 import { ButtonLink } from '@/components/Button';
 import { ExternalLink } from '@/components/ExternalLink';
 import { ListingCard } from '@/components/ListingCard';
+import { OrgFacts } from '@/components/OrgFacts';
 import { OrgFiltersForm } from '@/components/OrgFiltersForm';
 import { sortedCountries } from '@/i18n/countries';
 import { getPreferences } from '@/i18n/preferences';
 import { formatLocale } from '@/lib/format';
 import { getCurrentUser } from '@/server/auth/session';
 import { filtersToQuery, hasFilters, parseOrgFilters } from '@/server/org-page/filters';
-import { orgListings } from '@/server/org-page/org';
+import { orgFacts, orgListings } from '@/server/org-page/org';
 import { resolveOrg } from '@/server/org-page/resolve';
 
 type Props = {
@@ -36,9 +37,10 @@ export default async function OrgPage({ params, searchParams }: Props) {
   const { profile } = org;
   const name = profile.displayName;
 
-  const [animals, happyEndings] = await Promise.all([
+  const [animals, happyEndings, facts] = await Promise.all([
     orgListings(org, viewer?.did, { ...filters, statuses: ['available', 'reserved'], limit: 24 }),
     orgListings(org, viewer?.did, { statuses: ['adopted'], limit: HAPPY_ENDINGS_SHOWN }),
+    orgFacts(org.did),
   ]);
   const countryName =
     sortedCountries(language).find(({ code }) => code === profile.location.country)?.name ??
@@ -62,7 +64,6 @@ export default async function OrgPage({ params, searchParams }: Props) {
   ].filter((link): link is { key: string; href: string; label: string } => Boolean(link));
   const preferred = contactLinks.find((link) => link.key === contact.preferred) ?? contactLinks[0]!;
   const others = contactLinks.filter((link) => link !== preferred);
-  const charity = profile.charityRegistration;
   const home = `/org/${encodeURIComponent(org.handle ?? org.did)}`;
 
   return (
@@ -219,25 +220,12 @@ export default async function OrgPage({ params, searchParams }: Props) {
             </section>
           )}
 
-          <section aria-labelledby="facts" className="rounded-lg border border-line bg-surface p-5">
-            <h2 id="facts" className="mb-2 text-lg font-bold">
-              {t('facts')}
-            </h2>
-            <p className="mb-3 text-sm text-muted">{t('factsIntro')}</p>
-            {charity ? (
-              <p className="text-sm">
-                {t('charity', { registry: charity.registry, number: charity.number })}
-                {charity.registerUrl && (
-                  <>
-                    {' '}
-                    <ExternalLink href={charity.registerUrl}>{t('charityCheck')}</ExternalLink>
-                  </>
-                )}
-              </p>
-            ) : (
-              <p className="text-sm">{t('noFacts')}</p>
-            )}
-          </section>
+          <OrgFacts
+            handle={org.handle}
+            facts={facts}
+            charity={profile.charityRegistration}
+            locale={locale}
+          />
         </aside>
       </div>
     </div>

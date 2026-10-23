@@ -575,6 +575,12 @@
     "fee": "Adoption fee {amount}",
     "donation": "Suggested donation {amount}",
     "noFee": "No adoption fee",
-    "editProfile": "Edit your profile"
+    "editProfile": "Edit your profile",
+    "factDomain": "Its handle, @{handle}, is its own domain, and the domain points back to this account.",
+    "factDomainDns": "Checked through DNS on {date}.",
+    "factDomainHttps": "Checked through the domain's website on {date}.",
+    "factVerified": "Verified on Bluesky by {issuer} on {date}.",
+    "factChecked": "Still valid on {date}.",
+    "factVerifier": "See the verifier"
   }
 }

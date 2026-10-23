@@ -43,6 +43,13 @@
       "when": 1792742895081,
       "tag": "0005_org_approval",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792744533324,
+      "tag": "0006_org_facts",
+      "breakpoints": true
     }
   ]
 }
