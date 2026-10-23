@@ -24,6 +24,11 @@ const PRIVATE = {
    * (#33), then moved to the organisation's repository under the same record key (#31).
    */
   'pet.homeward.animal': { schema: pet.homeward.animal.main, key: 'tid' },
+  /**
+   * Draft listings (#33), with the status "draft": private until published, then moved to
+   * the organisation's repository under the same record key.
+   */
+  'pet.homeward.listing': { schema: pet.homeward.listing.main, key: 'tid' },
 } as const;
 
 export type PrivateCollection = keyof typeof PRIVATE;
@@ -34,6 +39,7 @@ export interface PrivateRecords {
   'pet.homeward.adopter.savedSearch': pet.homeward.adopter.savedSearch.Main;
   'pet.homeward.animal.identification': pet.homeward.animal.identification.Main;
   'pet.homeward.animal': pet.homeward.animal.Main;
+  'pet.homeward.listing': pet.homeward.listing.Main;
 }
 
 export interface PrivateListResult<C extends PrivateCollection> {
