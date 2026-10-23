@@ -12,12 +12,47 @@ type $nsid = typeof $nsid;
 export { $nsid };
 
 /** PRIVATE. A named set of discovery filters. */
-type Main = { $type: "pet.homeward.adopter.savedSearch";"name":string;"species"?:(HomewardDefs.Species)[];"sizes"?:(HomewardDefs.Size)[];"ageGroups"?:(HomewardDefs.AgeGroup)[];"sexes"?:(string)[];"bondedOnly"?:boolean;"maxKm"?:number;"hideConflicts"?:boolean;"sort"?:"bestMatch" | "nearest" | "newest" | l.UnknownString;"createdAt":l.DatetimeString };
+type Main = { $type: "pet.homeward.adopter.savedSearch";"name":string;"species"?:(HomewardDefs.Species)[];"sizes"?:(HomewardDefs.Size)[];"ageGroups"?:(HomewardDefs.AgeGroup)[];"sexes"?:(string)[];
+
+  /**
+   * Older form of together=bonded; readers still accept it.
+   */
+  "bondedOnly"?:boolean;
+
+  /**
+   * Only bonded groups, or only single animals. Absent: either.
+   */
+  "together"?:"bonded" | "single" | l.UnknownString;
+
+  /**
+   * Adoption fee kinds to include.
+   */
+  "fees"?:("none" | "donation" | "fee" | l.UnknownString)[];
+
+  /**
+   * A town or postcode the adopter typed to search near, instead of their own location.
+   */
+  "near"?:string;
+
+  /**
+   * ISO 3166-1 alpha-2 country of the typed place.
+   */
+  "country"?:string;
+
+  /**
+   * The place chosen when the typed name matched several.
+   */
+  "place"?:string;
+
+  /**
+   * Maximum distance in km, converted from the adopter's own unit.
+   */
+  "maxKm"?:number;"hideConflicts"?:boolean;"sort"?:"bestMatch" | "nearest" | "newest" | l.UnknownString;"createdAt":l.DatetimeString };
 
 export type { Main };
 
 /** PRIVATE. A named set of discovery filters. */
-const main = /*#__PURE__*/ l.record<"tid", Main>("tid", $nsid, /*#__PURE__*/ l.object({"name":/*#__PURE__*/ l.string({"maxLength":1000,"maxGraphemes":100}),"species":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<HomewardDefs.Species>((() => HomewardDefs.species) as any), {"maxLength":12})),"sizes":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<HomewardDefs.Size>((() => HomewardDefs.size) as any), {"maxLength":4})),"ageGroups":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<HomewardDefs.AgeGroup>((() => HomewardDefs.ageGroup) as any), {"maxLength":3})),"sexes":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":32}), {"maxLength":3})),"bondedOnly":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"maxKm":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":1,"maximum":5000})),"hideConflicts":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"sort":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"maxLength":32,"knownValues":["bestMatch","nearest","newest"]}>({"maxLength":32})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
+const main = /*#__PURE__*/ l.record<"tid", Main>("tid", $nsid, /*#__PURE__*/ l.object({"name":/*#__PURE__*/ l.string({"maxLength":1000,"maxGraphemes":100}),"species":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<HomewardDefs.Species>((() => HomewardDefs.species) as any), {"maxLength":12})),"sizes":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<HomewardDefs.Size>((() => HomewardDefs.size) as any), {"maxLength":4})),"ageGroups":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<HomewardDefs.AgeGroup>((() => HomewardDefs.ageGroup) as any), {"maxLength":3})),"sexes":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":32}), {"maxLength":3})),"bondedOnly":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"together":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"maxLength":32,"knownValues":["bonded","single"]}>({"maxLength":32})),"fees":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string<{"maxLength":32,"knownValues":["none","donation","fee"]}>({"maxLength":32}), {"maxLength":3})),"near":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000,"maxGraphemes":100})),"country":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"minLength":2,"maxLength":2})),"place":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":3000,"maxGraphemes":300})),"maxKm":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":1,"maximum":5000})),"hideConflicts":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"sort":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"maxLength":32,"knownValues":["bestMatch","nearest","newest"]}>({"maxLength":32})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
 
 export { main };
 

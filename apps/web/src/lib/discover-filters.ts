@@ -64,6 +64,14 @@ export function parseDiscoverFilters(params: SearchParams): DiscoverFilters {
   };
 }
 
+/** Filters from a query string, e.g. one posted back by a form. */
+export function filtersFromQuery(query: string): DiscoverFilters {
+  const params = new URLSearchParams(query);
+  return parseDiscoverFilters(
+    Object.fromEntries([...new Set(params.keys())].map((key) => [key, params.getAll(key)])),
+  );
+}
+
 /** The query string for these filters, with paging replaced (e.g. for "More animals"). */
 export function discoverQuery(
   filters: DiscoverFilters,
