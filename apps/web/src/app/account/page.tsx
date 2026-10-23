@@ -10,7 +10,6 @@ export default async function AccountPage() {
   if (!(await getCurrentUser())) redirect('/sign-in');
   const role = await getCurrentRole();
   if (role === 'organisation') redirect('/organisation/profile');
-  // The adopter profile arrives with #37.
-  if (role === 'adopter') redirect('/welcome/done');
+  if (role === 'adopter') redirect('/adopter/profile');
   redirect('/welcome');
 }

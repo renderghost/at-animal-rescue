@@ -16,12 +16,17 @@ type Main = { $type: "pet.homeward.adopter.location";
   /**
    * What the adopter typed, e.g. a town or postcode district.
    */
-  "label"?:string;"country":string;"latitude":string;"longitude":string;"updatedAt":l.DatetimeString };
+  "label"?:string;
+
+  /**
+   * County, province or state of the place found. The only part an adopter's public profile may show, and only if they choose to publish one.
+   */
+  "region"?:string;"country":string;"latitude":string;"longitude":string;"updatedAt":l.DatetimeString };
 
 export type { Main };
 
 /** PRIVATE. Where an adopter lives, used only for their own distance search and distance criteria. Coordinates are rounded to 2 decimal places (about 1 km): enough for matching, no more (data minimisation). */
-const main = /*#__PURE__*/ l.record<"literal:self", Main>("literal:self", $nsid, /*#__PURE__*/ l.object({"label":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000,"maxGraphemes":100})),"country":/*#__PURE__*/ l.string({"minLength":2,"maxLength":2}),"latitude":/*#__PURE__*/ l.string({"maxLength":12}),"longitude":/*#__PURE__*/ l.string({"maxLength":12}),"updatedAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
+const main = /*#__PURE__*/ l.record<"literal:self", Main>("literal:self", $nsid, /*#__PURE__*/ l.object({"label":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000,"maxGraphemes":100})),"region":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000,"maxGraphemes":100})),"country":/*#__PURE__*/ l.string({"minLength":2,"maxLength":2}),"latitude":/*#__PURE__*/ l.string({"maxLength":12}),"longitude":/*#__PURE__*/ l.string({"maxLength":12}),"updatedAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
 
 export { main };
 

@@ -24,8 +24,14 @@ export default async function OnboardingDonePage({
   return (
     <div className="max-w-xl">
       <h1 className="mb-4 text-3xl font-bold">{t('title')}</h1>
-      <p className="mb-2">{role === 'organisation' ? t('orgBody') : t('adopterBody')}</p>
-      <p className="mb-8 text-muted">{t('comingSoon')}</p>
+      {role === 'organisation' ? (
+        <>
+          <p className="mb-2">{t('orgBody')}</p>
+          <p className="mb-8 text-muted">{t('comingSoon')}</p>
+        </>
+      ) : (
+        <p className="mb-8">{t('adopterBody')}</p>
+      )}
       {role === 'organisation' && (unlocated === 'notFound' || unlocated === 'unavailable') && (
         <p
           role="status"
@@ -45,7 +51,12 @@ export default async function OnboardingDonePage({
           </div>
         </>
       ) : (
-        <ButtonLink href="/discover">{t('browse')}</ButtonLink>
+        <div className="flex flex-wrap gap-4">
+          <ButtonLink href="/adopter/profile">{t('adopterProfileAction')}</ButtonLink>
+          <ButtonLink href="/discover" variant="secondary">
+            {t('browse')}
+          </ButtonLink>
+        </div>
       )}
     </div>
   );

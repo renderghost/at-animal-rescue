@@ -29,8 +29,8 @@ export default async function OrganisationProfilePage() {
       <p className="mb-8">{t('intro')}</p>
       {lookup.kind === 'found' ? (
         <OrganisationProfileForm
-          initialValues={profileToFormValues(lookup.profile)}
-          unlocated={!lookup.profile.location.latitude}
+          initialValues={profileToFormValues(lookup.record)}
+          unlocated={!lookup.record.location.latitude}
           countries={sortedCountries(language)}
         />
       ) : (

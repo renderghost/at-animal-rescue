@@ -83,6 +83,16 @@ describe('resolvePlace', () => {
   });
 });
 
+describe('resolvePlace with postcodes', () => {
+  it('takes a single result for a postcode, whatever its town is called', async () => {
+    const result = await resolvePlace(geocoder([place('Utrecht', 'Utrecht')]), {
+      locality: '3511',
+      country: 'NL',
+    });
+    expect(result).toEqual({ kind: 'found', place: place('Utrecht', 'Utrecht') });
+  });
+});
+
 describe('locate', () => {
   const utrecht = { locality: 'Utrecht', country: 'NL' };
   const failing = { search: async () => expect.fail('should not geocode') };
