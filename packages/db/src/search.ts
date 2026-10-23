@@ -1,11 +1,30 @@
+import { AGE_THRESHOLDS, birthDateRange, type AgeGroup } from '@homeward/lexicons';
 import { sql, type SQL } from 'drizzle-orm';
 import type { Db } from './index';
+
+const LISTING = 'pet.homeward.listing#';
+
+/**
+ * Filters on what a listing states about the home it needs. Only listings that say so
+ * match: a listing that doesn't mention children is not "good with children" (spec §2).
+ */
+export const STATED_CRITERIA = {
+  children: { $type: `${LISTING}childrenCriterion`, allowed: true },
+  dogs: { $type: `${LISTING}otherAnimalsCriterion`, animal: 'dog', allowed: true },
+  cats: { $type: `${LISTING}otherAnimalsCriterion`, animal: 'cat', allowed: true },
+  firstTimeOwners: { $type: `${LISTING}experienceCriterion`, minimum: 'none' },
+  flat: { $type: `${LISTING}homeTypeCriterion`, allowed: ['flat'] },
+} as const;
+export type StatedCriterion = keyof typeof STATED_CRITERIA;
 
 export interface ListingSearch {
   species?: string[];
   sizes?: string[];
   sexes?: string[];
   bonded?: boolean;
+  /** Age groups, worked out per species from each animal's birth date. */
+  ageGroups?: AgeGroup[];
+  criteria?: StatedCriterion[];
   /** Defaults to listings people can still adopt: available and reserved. */
   statuses?: string[];
   orgDid?: string;
@@ -13,8 +32,12 @@ export interface ListingSearch {
   sort?: 'newest' | 'nearest';
   limit?: number;
   cursor?: string;
-  /** Include listings not yet approved, e.g. an organisation viewing its own. */
+  /**
+   * Include listings that aren't public: from an organisation not yet approved, or hidden
+   * after a report. Only for an organisation viewing its own.
+   */
   includeUnmoderated?: boolean;
+  now?: Date;
 }
 
 export interface ListingSearchResult {
@@ -23,6 +46,8 @@ export interface ListingSearchResult {
   status: string;
   bonded: boolean;
   moderation: string;
+  /** Whether the organisation has been approved, so its listings are public. */
+  orgApproved: boolean;
   createdAt: Date;
   criteria: unknown[];
   fee?: { kind: string; amount?: number; currency?: string };
@@ -85,7 +110,8 @@ export async function searchListings(
     // A listing needs at least one indexed animal to be shown.
     sql`EXISTS (SELECT 1 FROM index_animals a WHERE a.uri = ANY(l.animal_uris))`,
   ];
-  if (!search.includeUnmoderated) where.push(sql`l.moderation = 'approved'`);
+  // Public only once the organisation is approved, and unless a report has hidden it.
+  if (!search.includeUnmoderated) where.push(sql`o.trusted AND l.moderation <> 'hidden'`);
   if (search.orgDid) where.push(sql`l.did = ${search.orgDid}`);
   if (search.bonded !== undefined) where.push(sql`l.bonded = ${search.bonded}`);
   for (const [column, values] of [
@@ -98,6 +124,17 @@ export async function searchListings(
         sql`EXISTS (SELECT 1 FROM index_animals a WHERE a.uri = ANY(l.animal_uris) AND ${sql.raw(`a.${column}`)} = ANY(${textArray(values)}))`,
       );
     }
+  }
+  if (search.ageGroups?.length) {
+    const ages = ageConditions(search.ageGroups, search.species, search.now ?? new Date());
+    where.push(
+      ages.length > 0
+        ? sql`EXISTS (SELECT 1 FROM index_animals a WHERE a.uri = ANY(l.animal_uris) AND (${sql.join(ages, sql` OR `)}))`
+        : sql`FALSE`,
+    );
+  }
+  for (const key of search.criteria ?? []) {
+    where.push(sql`l.criteria @> ${JSON.stringify([STATED_CRITERIA[key]])}::jsonb`);
   }
   if (point && near?.maxKm !== undefined) {
     where.push(sql`ST_DWithin(${listingPoint}, ${point}, ${near.maxKm * 1000})`);
@@ -117,7 +154,7 @@ export async function searchListings(
 
   const rows = (await db.execute(sql`
     SELECT
-      l.uri, l.did, l.status, l.bonded, l.moderation, l.created_at, l.criteria,
+      l.uri, l.did, l.status, l.bonded, l.moderation, o.trusted, l.created_at, l.criteria,
       l.fee_kind, l.fee_amount, l.fee_currency,
       o.display_name, o.handle, o.locality, o.region, o.country,
       ${distance} AS distance_km,
@@ -148,6 +185,28 @@ export async function searchListings(
   return { listings, cursor: next && encodeCursor(next) };
 }
 
+/** Birth-date windows for the age groups, per species (thresholds differ by species). */
+function ageConditions(
+  groups: readonly AgeGroup[],
+  species: string[] | undefined,
+  now: Date,
+): SQL[] {
+  const day = (date: Date) => date.toISOString().slice(0, 10);
+  const conditions: SQL[] = [];
+  for (const kind of Object.keys(AGE_THRESHOLDS)) {
+    if (species?.length && !species.includes(kind)) continue;
+    for (const group of groups) {
+      const range = birthDateRange(kind, group, now);
+      if (!range) continue;
+      const bounds = [sql`a.species = ${kind}`, sql`a.birth_estimate IS NOT NULL`];
+      if (range.after) bounds.push(sql`a.birth_estimate > ${day(range.after)}::date`);
+      if (range.before) bounds.push(sql`a.birth_estimate <= ${day(range.before)}::date`);
+      conditions.push(sql`(${sql.join(bounds, sql` AND `)})`);
+    }
+  }
+  return conditions;
+}
+
 function toResult(row: Record<string, unknown>): ListingSearchResult {
   const optional = <T>(value: unknown) => (value === null ? undefined : (value as T));
   const feeKind = optional<string>(row.fee_kind);
@@ -166,6 +225,7 @@ function toResult(row: Record<string, unknown>): ListingSearchResult {
     status: row.status as string,
     bonded: row.bonded as boolean,
     moderation: row.moderation as string,
+    orgApproved: row.trusted as boolean,
     createdAt: new Date(row.created_at as string),
     criteria: row.criteria as unknown[],
     fee: feeKind

@@ -24,5 +24,6 @@ export * from './crypto';
 export * from './private-store';
 export * from './session-store';
 export * from './index-store';
+export * from './orgs';
 export * from './search';
 export * from './service-state';

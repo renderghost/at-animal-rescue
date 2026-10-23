@@ -61,20 +61,26 @@ export function RadioGroup({
   );
 }
 
-/** Any number of answers, as checkboxes, each submitted under its own name. */
+/** Any number of answers, as checkboxes. Each has its own name, or shares one with a value. */
 export function CheckboxGroup({
   options,
   checked,
   ...group
 }: GroupProps & {
-  options: Array<{ name: string; label: string }>;
-  checked: (name: string) => boolean;
+  options: Array<{ name: string; value?: string; label: string }>;
+  checked: (name: string, value?: string) => boolean;
 }) {
   return (
     <Group {...group}>
-      {options.map(({ name, label }) => (
-        <label key={name} className="flex items-center gap-2">
-          <input type="checkbox" name={name} defaultChecked={checked(name)} className={control} />
+      {options.map(({ name, value, label }) => (
+        <label key={`${name}=${value ?? ''}`} className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            name={name}
+            value={value}
+            defaultChecked={checked(name, value)}
+            className={control}
+          />
           {label}
         </label>
       ))}
