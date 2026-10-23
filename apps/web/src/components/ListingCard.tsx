@@ -1,5 +1,6 @@
 import type { ListingSearchResult } from '@homeward/db';
 import { ageGroupOf } from '@homeward/lexicons';
+import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { formatMoney } from '@/lib/format';
 import { Badge } from './Badge';
@@ -39,7 +40,13 @@ export async function ListingCard({
 
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
-      <h3 className="text-lg font-bold">{names}</h3>
+      <h3 className="text-lg font-bold">
+        <Link
+          href={`/org/${encodeURIComponent(listing.org.handle ?? listing.did)}/listings/${listing.uri.split('/').pop()}`}
+        >
+          {names}
+        </Link>
+      </h3>
       {listing.animals.length === 1 ? (
         <p className="text-muted">{describe(listing.animals[0]!)}</p>
       ) : (

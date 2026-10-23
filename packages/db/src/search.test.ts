@@ -6,7 +6,7 @@ import { createDb } from './index';
 import { IndexStore, parseCoordinates } from './index-store';
 import { indexListings, indexOrgs } from './schema';
 import { findOrg, hiddenListingKeys } from './orgs';
-import { searchListings } from './search';
+import { getListing, searchListings } from './search';
 
 const databaseUrl = process.env.DATABASE_URL;
 const createdAt = '2026-10-01T12:00:00.000Z';
@@ -121,6 +121,14 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
     expect(own.listings[0]).toMatchObject({ moderation: 'hidden' });
     // The organisation's dashboard shows which.
     expect(await hiddenListingKeys(db, org.did)).toEqual(['l1']);
+    // The listing page still finds it, and decides who may see it.
+    expect(await getListing(db, org.listing('l1'))).toMatchObject({
+      uri: org.listing('l1'),
+      moderation: 'hidden',
+      record: { title: 'Edited' },
+      animals: [{ uri: org.animal('a1'), name: 'Bonnie' }],
+    });
+    expect(await getListing(db, org.listing('nope'))).toBeUndefined();
   });
 
   it('filters by age group, worked out per species', async () => {

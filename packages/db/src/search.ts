@@ -50,6 +50,8 @@ export interface ListingSearchResult {
   orgApproved: boolean;
   createdAt: Date;
   criteria: unknown[];
+  /** The listing record in atproto JSON, as published (validate before use). */
+  record: unknown;
   fee?: { kind: string; amount?: number; currency?: string };
   distanceKm?: number;
   org: { displayName: string; handle?: string; locality: string; region?: string; country: string };
@@ -91,6 +93,33 @@ function textArray(values: readonly string[]): SQL {
 }
 
 const listingPoint = sql`ST_SetSRID(ST_MakePoint(l.longitude, l.latitude), 4326)::geography`;
+
+/** What a search result holds: the listing, its organisation and its animals in order. */
+const COLUMNS = sql`
+  l.uri, l.did, l.status, l.bonded, l.moderation, o.trusted, l.created_at, l.criteria,
+  l.record, l.fee_kind, l.fee_amount, l.fee_currency,
+  o.display_name, o.handle, o.locality, o.region, o.country,
+  (
+    SELECT COALESCE(json_agg(json_build_object(
+      'uri', a.uri, 'name', a.name, 'species', a.species, 'sex', a.sex,
+      'size', a.size, 'birthDate', a.birth_date, 'record', a.record
+    ) ORDER BY array_position(l.animal_uris, a.uri)), '[]'::json)
+    FROM index_animals a WHERE a.uri = ANY(l.animal_uris)
+  ) AS animals`;
+
+/**
+ * One listing by URI, whatever its status or moderation: the caller decides who may see it
+ * (the listing page, #35).
+ */
+export async function getListing(db: Db, uri: string): Promise<ListingSearchResult | undefined> {
+  const rows = (await db.execute(sql`
+    SELECT ${COLUMNS}, NULL AS distance_km
+    FROM index_listings l
+    JOIN index_orgs o ON o.did = l.did
+    WHERE l.uri = ${uri}
+  `)) as unknown as Array<Record<string, unknown>>;
+  return rows[0] && toResult(rows[0]);
+}
 
 /** Network-wide listing search for discovery and organisation profiles (spec §2). */
 export async function searchListings(
@@ -153,18 +182,7 @@ export async function searchListings(
   const offset = sort === 'nearest' && cursor && 'offset' in cursor ? cursor.offset : 0;
 
   const rows = (await db.execute(sql`
-    SELECT
-      l.uri, l.did, l.status, l.bonded, l.moderation, o.trusted, l.created_at, l.criteria,
-      l.fee_kind, l.fee_amount, l.fee_currency,
-      o.display_name, o.handle, o.locality, o.region, o.country,
-      ${distance} AS distance_km,
-      (
-        SELECT COALESCE(json_agg(json_build_object(
-          'uri', a.uri, 'name', a.name, 'species', a.species, 'sex', a.sex,
-          'size', a.size, 'birthDate', a.birth_date, 'record', a.record
-        ) ORDER BY array_position(l.animal_uris, a.uri)), '[]'::json)
-        FROM index_animals a WHERE a.uri = ANY(l.animal_uris)
-      ) AS animals
+    SELECT ${COLUMNS}, ${distance} AS distance_km
     FROM index_listings l
     JOIN index_orgs o ON o.did = l.did
     WHERE ${sql.join(where, sql` AND `)}
@@ -228,6 +246,7 @@ function toResult(row: Record<string, unknown>): ListingSearchResult {
     orgApproved: row.trusted as boolean,
     createdAt: new Date(row.created_at as string),
     criteria: row.criteria as unknown[],
+    record: row.record,
     fee: feeKind
       ? {
           kind: feeKind,
