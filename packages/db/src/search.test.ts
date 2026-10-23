@@ -279,10 +279,17 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
       animalRecord({ species: 'cat', size: 'small', sex: 'female' }),
       'c',
     );
-    await store.upsertListing(org.listing('dog'), listingRecord([org.animal('dog')]), 'c');
+    await store.upsertListing(
+      org.listing('dog'),
+      listingRecord([org.animal('dog')], { adoptionFee: { kind: 'none' } }),
+      'c',
+    );
     await store.upsertListing(
       org.listing('cat'),
-      listingRecord([org.animal('cat')], { bonded: true }),
+      listingRecord([org.animal('cat')], {
+        bonded: true,
+        adoptionFee: { kind: 'fee', amount: { amount: 9000, currency: 'EUR' } },
+      }),
       'c',
     );
     await store.upsertListing(
@@ -299,6 +306,8 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
       [org.listing('cat'), org.listing('dog')].sort(),
     );
     expect(await find({ bonded: true })).toEqual([org.listing('cat')]);
+    expect(await find({ feeKinds: ['none', 'donation'] })).toEqual([org.listing('dog')]);
+    expect(await find({ feeKinds: ['fee'] })).toEqual([org.listing('cat')]);
     expect(await find({})).not.toContain(org.listing('adopted'));
     expect(await find({ statuses: ['adopted'] })).toEqual([org.listing('adopted')]);
   });

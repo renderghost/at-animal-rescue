@@ -1,20 +1,38 @@
 import type { ListingSearchResult } from '@homeward/db';
+import type { MatchSummary } from '@homeward/matching';
 import { ageGroupOf } from '@homeward/lexicons';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { formatMoney } from '@/lib/format';
-import { Badge } from './Badge';
+import { Badge, type BadgeTone } from './Badge';
+
+// Each summary also carries its own glyph and words, never colour alone.
+const MATCH_TONES: Record<MatchSummary, BadgeTone> = {
+  strong: 'match',
+  possible: 'unknown',
+  conflicts: 'conflict',
+};
 
 /** One listing: its animals, status and fee. Staff also see what visitors can't. */
 export async function ListingCard({
   listing,
   locale,
   ownerView = false,
+  showOrganisation = false,
+  distance,
+  match,
 }: {
   listing: ListingSearchResult;
   locale: string;
   ownerView?: boolean;
+  /** In network-wide results, say which organisation and where. */
+  showOrganisation?: boolean;
+  /** How far it is from the searcher, as shown ("35 km away"), if known. */
+  distance?: string;
+  /** How the listing fits a signed-in adopter's home (#39). */
+  match?: MatchSummary;
 }) {
+  const matchLabels = await getTranslations('Match');
   const t = await getTranslations('OrgPage');
   const taxonomy = await getTranslations('Taxonomy');
   const names = new Intl.ListFormat(locale, { type: 'conjunction' }).format(
@@ -58,7 +76,13 @@ export async function ListingCard({
           ))}
         </ul>
       )}
+      {showOrganisation && (
+        <p className="text-sm text-muted">
+          {[listing.org.displayName, listing.org.locality, distance].filter(Boolean).join(' · ')}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
+        {match && <Badge tone={MATCH_TONES[match]}>{matchLabels(match)}</Badge>}
         {listing.status === 'reserved' && <Badge>{t('reserved')}</Badge>}
         {listing.status === 'adopted' && <Badge tone="match">{t('adopted')}</Badge>}
         {listing.bonded && listing.animals.length > 1 && <Badge>{t('bonded')}</Badge>}
@@ -69,11 +93,15 @@ export async function ListingCard({
       </div>
       {listing.status !== 'adopted' && fee && (
         <p className="text-sm">
-          {fee.kind === 'none' || !amount
+          {fee.kind === 'none'
             ? t('noFee')
             : fee.kind === 'donation'
-              ? t('donation', { amount })
-              : t('fee', { amount })}
+              ? amount
+                ? t('donation', { amount })
+                : t('donationAny')
+              : amount
+                ? t('fee', { amount })
+                : t('noFee')}
         </p>
       )}
     </article>

@@ -22,6 +22,8 @@ export interface ListingSearch {
   sizes?: string[];
   sexes?: string[];
   bonded?: boolean;
+  /** Fee kinds to include (none, donation, fee); listings that don't say are left out. */
+  feeKinds?: string[];
   /** Age groups, worked out per species from each animal's birth date. */
   ageGroups?: AgeGroup[];
   criteria?: StatedCriterion[];
@@ -162,6 +164,7 @@ export async function searchListings(
   if (!search.includeUnmoderated) where.push(sql`o.trusted AND l.moderation <> 'hidden'`);
   if (search.orgDid) where.push(sql`l.did = ${search.orgDid}`);
   if (search.bonded !== undefined) where.push(sql`l.bonded = ${search.bonded}`);
+  if (search.feeKinds?.length) where.push(sql`l.fee_kind = ANY(${textArray(search.feeKinds)})`);
   for (const [column, values] of [
     ['species', search.species],
     ['size', search.sizes],

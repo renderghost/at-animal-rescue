@@ -27,7 +27,43 @@
   },
   "Discover": {
     "title": "Find an animal",
-    "comingSoon": "Search and filters are on their way."
+    "intro": "Animals from rescues across Europe, looking for a home.",
+    "filters": "Filters",
+    "sex": "Sex",
+    "fee": "Adoption fee",
+    "feeKinds": {
+      "none": "No fee",
+      "donation": "Suggested donation",
+      "fee": "Adoption fee"
+    },
+    "where": "Where",
+    "near": "Near a town or postcode",
+    "nearHint": "Leave empty to use the location in your profile.",
+    "nearHintAnonymous": "Only used to measure distances.",
+    "country": "Country",
+    "countryAny": "Any country",
+    "within": "Within",
+    "withinAny": "Any distance",
+    "withinKm": "{count} km",
+    "withinMile": "{count, plural, one {# mile} other {# miles}}",
+    "sort": "Sort by",
+    "sortMatch": "Best match",
+    "sortNearest": "Nearest",
+    "sortNewest": "Newest",
+    "hideConflicts": "Hide animals that don't fit my home",
+    "apply": "Show animals",
+    "clear": "Clear filters",
+    "fromProfile": "Distances from your location ({place}).",
+    "fromTyped": "Distances from {place}.",
+    "notFound": "We couldn't find {place}, so distances aren't shown.",
+    "geocoderDown": "We couldn't look up {place} just now, so distances aren't shown.",
+    "chooseHint": "Choose the one you meant.",
+    "profilePrompt": "Answer a few questions about your home to see how each animal fits you.",
+    "profileLink": "Tell us about your home",
+    "none": "No animals match these filters.",
+    "more": "More animals",
+    "away": "{distance} away",
+    "nearby": "Nearby"
   },
   "SignIn": {
     "title": "Sign in",
@@ -594,7 +630,8 @@
     "factEmail": "Its contact email, at {domain}, was confirmed on {date}.",
     "factEmailHandle": "That's also the domain of its handle.",
     "factEmailWebsite": "That's also the domain of the website it lists.",
-    "factEmailBoth": "That's also the domain of its handle and of the website it lists."
+    "factEmailBoth": "That's also the domain of its handle and of the website it lists.",
+    "donationAny": "Suggested donation"
   },
   "EmailConfirmation": {
     "heading": "Confirm your contact email",
