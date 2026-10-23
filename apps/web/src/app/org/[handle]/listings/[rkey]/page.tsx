@@ -6,12 +6,14 @@ import { AnimalDetails } from '@/components/AnimalDetails';
 import { ButtonLink } from '@/components/Button';
 import { CriteriaList } from '@/components/CriteriaList';
 import { ExternalLink } from '@/components/ExternalLink';
+import { FitSummary } from '@/components/FitSummary';
 import { OrgFacts } from '@/components/OrgFacts';
 import { sortedCountries } from '@/i18n/countries';
 import { getPreferences } from '@/i18n/preferences';
 import { formatMoney } from '@/lib/format';
 import { imageUrl } from '@/lib/images';
 import { photoCid } from '@/server/animals/animals';
+import { listingFit } from '@/server/listing-page/fit';
 import { loadListingPage } from '@/server/listing-page/listing';
 import { listingTitle } from '@/server/listings/listing-form';
 import { contactLinks } from '@/server/org-page/contact';
@@ -63,10 +65,12 @@ export default async function ListingPage({ params }: Props) {
   const { listing, animals } = view;
   const name = org.profile.displayName;
   const home = `/org/${encodeURIComponent(org.handle ?? org.did)}`;
-  const url = `${await siteOrigin()}${home}/listings/${view.rkey}`;
-  const [facts, confirmation] = await Promise.all([
+  const path = `${home}/listings/${view.rkey}`;
+  const url = `${await siteOrigin()}${path}`;
+  const [facts, confirmation, fit] = await Promise.all([
     orgFacts(org.did),
     emailConfirmationOf(org.did),
+    listingFit(org.did, view),
   ]);
   const email = emailFact({
     confirmation,
@@ -147,6 +151,7 @@ export default async function ListingPage({ params }: Props) {
         </div>
         {listing.status === 'reserved' && <p className="mt-2 text-sm">{t('reservedHint')}</p>}
         {listing.summary && <p className="mt-4 max-w-prose text-lg">{listing.summary}</p>}
+        <FitSummary fit={fit} title={title} name={name} />
       </header>
 
       {/* Reading order: getting in touch first, then the animals; on wide screens both side
@@ -220,7 +225,12 @@ export default async function ListingPage({ params }: Props) {
             {listing.criteria && listing.criteria.length > 0 ? (
               <>
                 <p className="mb-4 text-muted">{t('criteriaHint', { name })}</p>
-                <CriteriaList criteria={listing.criteria} />
+                <CriteriaList
+                  criteria={listing.criteria}
+                  fit={
+                    fit.kind === 'match' ? { criteria: fit.criteria, name, back: path } : undefined
+                  }
+                />
               </>
             ) : (
               <p>{t('noCriteria', { name })}</p>

@@ -6,7 +6,7 @@ import { createDb } from './index';
 import { IndexStore, parseCoordinates } from './index-store';
 import { indexListings, indexOrgs } from './schema';
 import { findOrg, hiddenListingKeys } from './orgs';
-import { getListing, searchListings } from './search';
+import { getListing, listingDistanceKm, searchListings } from './search';
 
 const databaseUrl = process.env.DATABASE_URL;
 const createdAt = '2026-10-01T12:00:00.000Z';
@@ -69,7 +69,10 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
   });
 
   /** A fresh organisation with animals, optionally trusted so listings skip review. */
-  async function seedOrg({ trusted = true, place = UTRECHT } = {}) {
+  async function seedOrg({
+    trusted = true,
+    place = UTRECHT as { latitude?: string; longitude?: string },
+  } = {}) {
     const did = `did:plc:idx${randomBytes(8).toString('hex')}`;
     dids.push(did);
     await store.upsertOrg(did, orgRecord(place), 'cid-org', 'test.example.org');
@@ -129,6 +132,25 @@ describe.runIf(databaseUrl)('IndexStore and searchListings', () => {
       animals: [{ uri: org.animal('a1'), name: 'Bonnie' }],
     });
     expect(await getListing(db, org.listing('nope'))).toBeUndefined();
+  });
+
+  it('measures one listing’s distance, as search does', async () => {
+    const org = await seedOrg();
+    await store.upsertAnimal(org.animal('a1'), animalRecord({}), 'c');
+    await store.upsertListing(org.listing('l1'), listingRecord([org.animal('a1')]), 'c');
+    const amsterdam = { latitude: 52.37, longitude: 4.9 };
+    const km = await listingDistanceKm(db, org.listing('l1'), amsterdam);
+    const found = await searchListings(db, { orgDid: org.did, near: amsterdam });
+    expect(km).toBeGreaterThan(30);
+    expect(km).toBeLessThan(40);
+    expect(km).toBeCloseTo(found.listings[0]!.distanceKm!, 6);
+
+    // Without a location, there's nothing to measure.
+    const nowhere = await seedOrg({ place: {} });
+    await store.upsertAnimal(nowhere.animal('a1'), animalRecord({}), 'c');
+    await store.upsertListing(nowhere.listing('l1'), listingRecord([nowhere.animal('a1')]), 'c');
+    expect(await listingDistanceKm(db, nowhere.listing('l1'), amsterdam)).toBeUndefined();
+    expect(await listingDistanceKm(db, org.listing('nope'), amsterdam)).toBeUndefined();
   });
 
   it('filters by age group, worked out per species', async () => {

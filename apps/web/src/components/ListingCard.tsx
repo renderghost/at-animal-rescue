@@ -4,14 +4,7 @@ import { ageGroupOf } from '@homeward/lexicons';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { formatMoney } from '@/lib/format';
-import { Badge, type BadgeTone } from './Badge';
-
-// Each summary also carries its own glyph and words, never colour alone.
-const MATCH_TONES: Record<MatchSummary, BadgeTone> = {
-  strong: 'match',
-  possible: 'unknown',
-  conflicts: 'conflict',
-};
+import { Badge, MATCH_TONES } from './Badge';
 
 /** One listing: its animals, status and fee. Staff also see what visitors can't. */
 export async function ListingCard({

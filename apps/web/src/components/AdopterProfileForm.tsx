@@ -1,6 +1,7 @@
 'use client';
 
 import { AGE_GROUPS, SIZES, SPECIES } from '@homeward/lexicons/taxonomy';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useActionState, useId, type ReactNode } from 'react';
 import { updateAdopterProfile } from '@/app/actions/adopter-profile';
@@ -55,6 +56,7 @@ export function AdopterProfileForm({
   publicProfileKnown,
   publicArea,
   countries,
+  back,
 }: {
   initialValues: Record<string, string>;
   /** Whether the page could check for a published profile (so unticking can remove it). */
@@ -62,6 +64,8 @@ export function AdopterProfileForm({
   /** The area the public profile shows (region and country). */
   publicArea?: PublicArea;
   countries: Array<{ code: string; name: string }>;
+  /** The listing the adopter came from, to return to once they've saved (#40). */
+  back?: { href: string; label: string };
 }) {
   const t = useTranslations('AdopterProfile');
   const taxonomy = useTranslations('Taxonomy');
@@ -83,6 +87,7 @@ export function AdopterProfileForm({
   ];
   const choice = (field: keyof typeof CHOICES, labels: Record<string, string>) => (
     <RadioGroup
+      id={field}
       name={field}
       legend={t(field)}
       defaultValue={values[field] || UNANSWERED}
@@ -97,6 +102,7 @@ export function AdopterProfileForm({
     hint?: string,
   ) => (
     <RadioGroup
+      id={field}
       name={field}
       legend={t(field)}
       hint={hint}
@@ -141,12 +147,19 @@ export function AdopterProfileForm({
             : state.unlocated === 'unavailable'
               ? t('savedUnavailable', { place: typedPlace })
               : t('saved')}
+          {back && (
+            <>
+              {' '}
+              <Link href={back.href}>{back.label}</Link>
+            </>
+          )}
         </p>
       )}
 
       <Section title={t('household')} visibility={t('private')}>
         {question('children')}
         <Field
+          id="youngestAge"
           name="youngestAge"
           type="number"
           inputMode="numeric"
@@ -159,6 +172,7 @@ export function AdopterProfileForm({
           className="max-w-32"
         />
         <RadioGroup
+          id="otherAnimals"
           name="otherAnimals"
           legend={t('otherAnimals')}
           defaultValue={values.otherAnimals || UNANSWERED}
@@ -201,6 +215,7 @@ export function AdopterProfileForm({
 
       <Section title={t('care')} visibility={t('private')}>
         <RadioGroup
+          id="hoursAlone"
           name="hoursAlone"
           legend={t('hoursAlone')}
           defaultValue={values.hoursAlone || UNANSWERED}
@@ -224,6 +239,7 @@ export function AdopterProfileForm({
 
       <Section title={t('whereYouLive')} visibility={t('private')}>
         <Field
+          id="location"
           name="location"
           label={t('location')}
           hint={t('locationHint')}
@@ -301,9 +317,13 @@ export function AdopterProfileForm({
         />
       </Section>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? t('submitting') : t('submit')}
-      </Button>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <Button type="submit" disabled={pending}>
+          {pending ? t('submitting') : t('submit')}
+        </Button>
+        {/* Next to the button too, as the saved message is at the top of a long form. */}
+        {state.status === 'saved' && back && <Link href={back.href}>{back.label}</Link>}
+      </div>
     </form>
   );
 }
