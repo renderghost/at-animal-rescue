@@ -1,3 +1,4 @@
+import { lexToJson } from '@atproto/lex';
 import type { pet } from '@homeward/lexicons';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from './index';
@@ -56,7 +57,8 @@ export class IndexStore {
       country: record.location.country.toUpperCase(),
       latitude: coordinates?.latitude ?? null,
       longitude: coordinates?.longitude ?? null,
-      record,
+      // Stored in standard atproto JSON (blob refs as $link), as served to clients.
+      record: lexToJson(record),
       cid,
       indexedAt: new Date(),
     };
@@ -88,7 +90,7 @@ export class IndexStore {
       size: record.size ?? null,
       birthDate: record.birth?.date ?? null,
       breeds: record.breeds ?? [],
-      record,
+      record: lexToJson(record),
       cid,
       indexedAt: new Date(),
     };
@@ -128,7 +130,7 @@ export class IndexStore {
         overrideLongitude: override?.longitude ?? null,
         latitude: override?.latitude ?? org?.latitude ?? null,
         longitude: override?.longitude ?? org?.longitude ?? null,
-        record,
+        record: lexToJson(record),
         cid,
         createdAt: recordTimestamp(record.createdAt),
         indexedAt: new Date(),

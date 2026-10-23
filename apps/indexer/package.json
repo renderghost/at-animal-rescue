@@ -3,10 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
   "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
+    "start": "tsx src/main.ts",
     "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@atproto/identity": "^0.5.20",
+    "@atproto/lex": "^0.4.2",
+    "@atproto/syntax": "^0.7.7",
+    "@homeward/db": "workspace:*",
+    "@homeward/lexicons": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2",
+    "drizzle-orm": "^0.45.4",
+    "tsx": "^4.23.15",
+    "ws": "^8.22.0"
   }
 }

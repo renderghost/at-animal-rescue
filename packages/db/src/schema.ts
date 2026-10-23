@@ -145,3 +145,10 @@ export const indexListings = pgTable(
     ),
   ],
 );
+
+/** Small key/value store for background services, e.g. the indexer's Jetstream cursor. */
+export const serviceState = pgTable('service_state', {
+  key: text().primaryKey(),
+  value: text().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
