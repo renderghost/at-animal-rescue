@@ -45,6 +45,9 @@ export default async function OnboardingDonePage({
           <p className="mb-4">{t('orgProfile')}</p>
           <div className="flex flex-wrap gap-4">
             <ButtonLink href="/organisation/profile">{t('orgProfileAction')}</ButtonLink>
+            <ButtonLink href="/organisation/animals/new" variant="secondary">
+              {t('orgAnimalsAction')}
+            </ButtonLink>
             <ButtonLink href="/discover" variant="secondary">
               {t('browse')}
             </ButtonLink>

@@ -8,7 +8,7 @@ interface LabelProps {
 }
 
 const control =
-  'min-h-11 rounded-sm border border-line-strong bg-surface px-3 py-2 text-base text-fg aria-invalid:border-2 aria-invalid:border-danger';
+  'min-h-11 min-w-0 rounded-sm border border-line-strong bg-surface px-3 py-2 text-base text-fg aria-invalid:border-2 aria-invalid:border-danger';
 
 /** Label, hint and error text for one control, wired up via aria-describedby. */
 function Labelled({
@@ -31,7 +31,7 @@ function Labelled({
   const errorId = error ? `${controlId}-error` : undefined;
 
   return (
-    <div className="mb-6 grid gap-1">
+    <div className="mb-6 grid min-w-0 gap-1">
       <label htmlFor={controlId} className="font-semibold">
         {label}
       </label>
