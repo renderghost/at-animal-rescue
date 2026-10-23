@@ -530,11 +530,7 @@
       "compositePrimaryKeys": {
         "private_records_did_collection_rkey_pk": {
           "name": "private_records_did_collection_rkey_pk",
-          "columns": [
-            "did",
-            "collection",
-            "rkey"
-          ]
+          "columns": ["did", "collection", "rkey"]
         }
       },
       "uniqueConstraints": {},

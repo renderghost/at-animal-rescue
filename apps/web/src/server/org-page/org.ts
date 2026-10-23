@@ -1,6 +1,12 @@
 import 'server-only';
 import { jsonToLex } from '@atproto/lex';
-import { findOrg, searchListings, type ListingSearch } from '@homeward/db';
+import {
+  findOrg,
+  OrgFactsStore,
+  searchListings,
+  type ListingSearch,
+  type OrgFacts,
+} from '@homeward/db';
 import { pet } from '@homeward/lexicons';
 import { getDb } from '../db';
 import type { OrganisationProfile } from '../onboarding/organisation-form';
@@ -34,4 +40,9 @@ export function orgListings(org: PublicOrg, viewerDid: string | undefined, searc
     orgDid: org.did,
     includeUnmoderated: viewerDid === org.did,
   });
+}
+
+/** The facts Homeward has checked about an organisation (#29), if any yet. */
+export function orgFacts(did: string): Promise<OrgFacts | undefined> {
+  return new OrgFactsStore(getDb()).get(did);
 }
