@@ -103,6 +103,17 @@ describe.runIf(databaseUrl)('ListingReportStore', () => {
     ]);
   });
 
+  it('counts recent reports from one email address', async () => {
+    const { did, uri } = await newListing();
+    const email = `flood-${randomBytes(4).toString('hex')}@example.org`;
+    clock = new Date('2026-10-24T09:00:00Z');
+    await report(uri, did, { reporterEmail: email });
+    clock = new Date('2026-10-24T10:30:00Z');
+    await report(uri, did, { reporterEmail: email.toUpperCase() });
+    await report(uri, did, { reporterEmail: email });
+    expect(await store.countFromEmail(email, new Date('2026-10-24T10:00:00Z'))).toBe(2);
+  });
+
   it('hides a listing, deciding every open report about it', async () => {
     const { did, uri, animal } = await newListing();
     const first = await report(uri, did);

@@ -19,6 +19,7 @@ import {
   looksLikeEmail,
   MAX_APPEAL,
   MAX_EXPLANATION,
+  MAX_RECEIPTS_PER_HOUR,
   MAX_REPORTER_NAME,
   MAX_STATEMENT,
   parseListingUri,
@@ -75,7 +76,8 @@ export async function submitReport(
   if (!target) return { status: 'error', unavailable: true, problems, values };
   if (Object.keys(problems).length > 0) return { status: 'error', problems, values };
 
-  const report = await listingReports().report({
+  const store = listingReports();
+  const report = await store.report({
     listingUri: target.uri,
     orgDid: target.org.did,
     reason: values.reason,
@@ -83,7 +85,14 @@ export async function submitReport(
     reporterName: values.name || undefined,
     reporterEmail: values.email || undefined,
   });
-  await mailReceipt(report, target.title, `${await siteOrigin()}${target.path}`);
+  // Receipts go to any address typed in, so only a few an hour: the report is taken anyway.
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  if (
+    report.reporterEmail &&
+    (await store.countFromEmail(report.reporterEmail, hourAgo)) <= MAX_RECEIPTS_PER_HOUR
+  ) {
+    await mailReceipt(report, target.title, `${await siteOrigin()}${target.path}`);
+  }
   return { status: 'done', reference: report.reference, emailed: Boolean(report.reporterEmail) };
 }
 

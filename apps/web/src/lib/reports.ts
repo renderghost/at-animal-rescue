@@ -63,6 +63,8 @@ export const MAX_EXPLANATION = 2000;
 export const MAX_REPORTER_NAME = 100;
 export const MAX_STATEMENT = 2000;
 export const MAX_APPEAL = 2000;
+/** Receipts to one email address per hour, so the form can't be used to flood an inbox. */
+export const MAX_RECEIPTS_PER_HOUR = 5;
 
 /** Loose on purpose: the address only receives the outcome, so a typo costs the reporter. */
 export const looksLikeEmail = (value: string) =>

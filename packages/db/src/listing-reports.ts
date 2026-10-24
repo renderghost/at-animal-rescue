@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { and, asc, desc, eq, isNotNull, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, isNotNull, isNull, lt, sql } from 'drizzle-orm';
 import type { Db } from './index';
 import { indexListings, listingHides, listingModerationLog, listingReports } from './schema';
 
@@ -105,6 +105,20 @@ export class ListingReportStore {
   async get(id: string): Promise<ListingReport | undefined> {
     const [row] = await this.db.select().from(listingReports).where(eq(listingReports.id, id));
     return row && this.toReport(row);
+  }
+
+  /** How many reports gave this email address since a time (any case). */
+  async countFromEmail(email: string, since: Date): Promise<number> {
+    const [row] = await this.db
+      .select({ count: count() })
+      .from(listingReports)
+      .where(
+        and(
+          sql`lower(${listingReports.reporterEmail}) = lower(${email})`,
+          gte(listingReports.createdAt, since),
+        ),
+      );
+    return row?.count ?? 0;
   }
 
   /** Reports waiting for a decision, oldest first. */
