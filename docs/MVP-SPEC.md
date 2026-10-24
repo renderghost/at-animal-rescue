@@ -72,6 +72,7 @@ apps/indexer ◄── Jetstream (pet.homeward.* collections) ──► Postgres
   - `packages/lexicons`: lexicon JSON plus generated TypeScript.
   - `packages/matching`: a pure, tested matching function shared by server and client.
   - `packages/db`: Drizzle schema and migrations.
+- **Keeping the index current (#23, #24):** the indexer follows Jetstream for `pet.homeward.*` records and account events. **Write-through:** every Homeward record the web app writes or deletes is indexed straight away (validated as from the network, the handle checked both ways), so people see their own changes without waiting; it is best effort and never fails the change. **Backfill** resyncs one account with its repository (`com.atproto.repo.listRecords`): records are validated and indexed, and whatever the index holds for that account that the repository no longer has is removed; everything is fetched first, so an unreachable PDS changes nothing. It runs in the background after sign-in for an account the index doesn't know yet, and by hand for recovery: `pnpm backfill <handle-or-did>...` or `pnpm backfill --known` (every organisation in the index).
 - **Data residency:** EU-native hosting (Hetzner, Scaleway or Clever Cloud) via Docker Compose. EU processors only, including email (e.g. Scaleway TEM or Brevo).
 
 ### Sessions (app passwords)
