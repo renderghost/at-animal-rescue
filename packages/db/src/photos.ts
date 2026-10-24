@@ -36,3 +36,13 @@ export async function isPublicPhoto(db: Db, did: string, cid: string): Promise<b
     .limit(1);
   return rows.length > 0;
 }
+
+/** Every photo of an organisation's animals in the index, so caches can drop them (#46). */
+export async function photoCidsOf(db: Db, did: string): Promise<string[]> {
+  const rows = (await db.execute(sql`
+    SELECT DISTINCT photo -> 'image' -> 'ref' ->> '$link' AS cid
+    FROM ${indexAnimals}, jsonb_array_elements(COALESCE(${indexAnimals.record} -> 'photos', '[]'::jsonb)) AS photo
+    WHERE ${indexAnimals.did} = ${did}
+  `)) as unknown as Array<{ cid: string | null }>;
+  return rows.flatMap((row) => (row.cid ? [row.cid] : []));
+}

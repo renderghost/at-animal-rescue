@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { AccountNav } from '@/components/AccountNav';
+import { Analytics } from '@/components/Analytics';
 import { PreferencesForm } from '@/components/PreferencesForm';
 import { contentLanguageTag } from '@/i18n/config';
 import { getPreferences } from '@/i18n/preferences';
@@ -23,6 +24,9 @@ const container = 'mx-auto w-full max-w-6xl px-4';
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const { language } = await getPreferences();
   const t = await getTranslations();
+  // Cookie-free analytics (#46), only where it's configured.
+  const umami = process.env.UMAMI_SCRIPT_URL;
+  const umamiWebsite = process.env.UMAMI_WEBSITE_ID;
 
   return (
     <html lang={contentLanguageTag[language]}>
@@ -60,12 +64,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <p>
                 {t('Footer.tagline')} {t('Footer.hostedInEu')}
               </p>
-              <p>
+              <p className="flex flex-wrap gap-x-4 gap-y-1">
                 <Link href="/guidelines">{t('Footer.guidelines')}</Link>
+                <Link href="/privacy">{t('Footer.privacy')}</Link>
+                <Link href="/terms">{t('Footer.terms')}</Link>
               </p>
             </div>
           </footer>
         </NextIntlClientProvider>
+        {umami && umamiWebsite && <Analytics src={umami} websiteId={umamiWebsite} />}
       </body>
     </html>
   );

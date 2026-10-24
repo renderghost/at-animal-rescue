@@ -15,7 +15,9 @@
   "Footer": {
     "tagline": "Built on the AT Protocol. Your data stays yours.",
     "hostedInEu": "Hosted in the EU.",
-    "guidelines": "Welfare guidelines"
+    "guidelines": "Welfare guidelines",
+    "privacy": "Privacy",
+    "terms": "Terms"
   },
   "Home": {
     "title": "Every rescue animal deserves the right home",
@@ -571,7 +573,8 @@
     "deleteAction": "Delete my private answers",
     "deleted": "Your private answers have been deleted.",
     "backTo": "Back to {title}",
-    "savedSearches": "Your saved searches"
+    "savedSearches": "Your saved searches",
+    "yourData": "Download or delete your data"
   },
   "OrgPage": {
     "notApproved": "New to Homeward. Its animals will appear here once we've checked the organisation.",
@@ -1119,7 +1122,8 @@
     "appealErrors": {
       "required": "Tell us why it should be looked at again.",
       "tooLong": "Keep it to {max, number} characters or fewer."
-    }
+    },
+    "yourData": "Your data"
   },
   "ListingPage": {
     "backTo": "More animals from {name}",
@@ -1687,5 +1691,91 @@
       "subject": "\"{title}\" stays hidden on Homeward",
       "body": "Hello,\n\nA moderator took a second look at {name}'s listing \"{title}\" and has kept it hidden. Their reasons:\n\n{note}\n\nIf you still disagree, you can take the decision to a certified out-of-court dispute settlement body or to the courts.\n\nYour dashboard: {dashboard}\n\nHomeward"
     }
+  },
+  "AccountData": {
+    "title": "Your data",
+    "intro": "Homeward keeps some things about you on its own servers in the EU. You can download them or delete them here. Your Bluesky (atproto) account is yours and is only changed if you ask below.",
+    "heldHeading": "What Homeward holds about you",
+    "held": {
+      "answers": "Your answers about your home, and where you live",
+      "savedSearches": "Your saved searches",
+      "shareLinks": "Links you've shared with organisations, and when they were opened",
+      "drafts": "Drafts of animals and listings, and their photos",
+      "identification": "Identification numbers, such as microchip numbers",
+      "email": "Your confirmed contact email address",
+      "moderation": "Moderators' decisions about your organisation, and their reasons",
+      "sessions": "When you signed in, and on how many devices"
+    },
+    "publicNote": {
+      "organisation": "Your profile, animals and listings are public records in your own account. Homeward keeps a copy of them to show and search them.",
+      "adopter": "If you made a public adopter profile, it's a record in your own account."
+    },
+    "downloadHeading": "Download your data",
+    "downloadBody": "One JSON file with everything above. It never contains passwords or sign-in secrets.",
+    "download": "Download your data (JSON)",
+    "deleteHeading": "Delete your data",
+    "deleteBody": "Delete everything Homeward holds about you, straight away. You'll be signed out everywhere.",
+    "deleteLink": "See what's deleted, and delete it",
+    "back": "Back to your data",
+    "deleteTitle": "Delete your data",
+    "willDelete": "This deletes, straight away:",
+    "signedOut": "You'll be signed out on every device.",
+    "stays": "What stays:",
+    "staysModeration": "Moderators' decisions about your organisation and their reasons, so moderation stays accountable.",
+    "staysAccount": "Your Bluesky (atproto) account, and everything in it that isn't a Homeward record.",
+    "alsoPublic": {
+      "organisation": "Also delete my Homeward profile, animals and listings from my account",
+      "adopter": "Also delete my public adopter profile from my account"
+    },
+    "alsoPublicHint": {
+      "organisation": "Without this, they stay public, because Homeward reads them from your account. Your posts and anything else in your account are never touched.",
+      "adopter": "Without this, it stays in your account. Nothing else in your account is touched."
+    },
+    "cantUndo": "This can't be undone. You may want to download your data first.",
+    "confirm": "Delete my data",
+    "cancel": "Keep my data",
+    "errors": {
+      "unavailable": "We couldn't reach your account to delete your public records, so nothing has been deleted. Please try again, or untick that option."
+    },
+    "deletedTitle": "Your data has been deleted",
+    "deletedBody": "Everything Homeward held about you has gone, and you've been signed out.",
+    "deletedPublic": "Your public Homeward records have been deleted from your account too.",
+    "deletedNotPublic": "Any public Homeward records stay in your own account until you delete them.",
+    "deletedAccount": "Your Bluesky (atproto) account is still yours. If you sign in to Homeward again, you start afresh.",
+    "home": "Go to the home page"
+  },
+  "Privacy": {
+    "metaTitle": "Privacy notice",
+    "title": "Privacy notice",
+    "draft": "This notice hasn't been written yet. It will be, with legal advice, once the organisation running Homeward is set up. Until then, the headings below show what it will cover.",
+    "todo": "To be written once Homeward's legal entity exists.",
+    "sections": {
+      "controller": "Who is responsible for your data",
+      "collected": "What we collect",
+      "why": "Why we collect it, and on what basis",
+      "kept": "How long we keep it",
+      "cookies": "Cookies",
+      "analytics": "Analytics",
+      "sharing": "Who we share it with",
+      "rights": "Your rights",
+      "contact": "How to contact us or complain"
+    },
+    "yourData": "You can already download or delete your data on the <link>Your data</link> page."
+  },
+  "Terms": {
+    "metaTitle": "Terms of use",
+    "title": "Terms of use",
+    "draft": "These terms haven't been written yet. They will be, with legal advice, once the organisation running Homeward is set up. Until then, the headings below show what they will cover.",
+    "todo": "To be written once Homeward's legal entity exists.",
+    "sections": {
+      "service": "What Homeward is",
+      "accounts": "Your account",
+      "listings": "Rules for listings",
+      "moderation": "Reports and moderation",
+      "liability": "Our responsibility",
+      "changes": "Changes to these terms",
+      "law": "Which law applies"
+    },
+    "guidelines": "The rules for listings are already in the <link>welfare guidelines</link>."
   }
 }

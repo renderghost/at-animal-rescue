@@ -19,7 +19,8 @@
     "format:check": "prettier --check .",
     "services:up": "docker compose up -d --wait",
     "services:down": "docker compose down",
-    "db:migrate": "pnpm --filter @homeward/db db:migrate"
+    "db:migrate": "pnpm --filter @homeward/db db:migrate",
+    "backfill": "pnpm --filter @homeward/indexer backfill"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

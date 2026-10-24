@@ -1,10 +1,12 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { after } from 'next/server';
 import { clientAddress } from '@/server/auth/client-ip';
 import { loginDependencies } from '@/server/auth/dependencies';
 import { LoginError, loginWithAppPassword, type LoginErrorCode } from '@/server/auth/login';
 import { startSession } from '@/server/auth/session';
+import { backfillOnSignIn } from '@/server/index/index-writer';
 
 export type SignInState =
   | { status: 'idle' }
@@ -23,6 +25,8 @@ export async function signIn(_previous: SignInState, formData: FormData): Promis
     const ip = await clientAddress();
     const login = await loginWithAppPassword({ identifier, password, ip }, loginDependencies);
     await startSession(login.session);
+    const { did, service } = login.session;
+    after(() => backfillOnSignIn(did, service));
   } catch (err) {
     if (err instanceof LoginError) {
       const minutes =
