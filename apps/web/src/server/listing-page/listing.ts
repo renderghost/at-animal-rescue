@@ -10,6 +10,7 @@ import { getDb } from '../db';
 import { animalKey, type ListingRecord } from '../listings/listing-form';
 import { loadListing } from '../listings/listings';
 import { getRepoClient } from '../onboarding/current-role';
+import { isAdmin } from '../admin/admins';
 import type { PublicOrg } from '../org-page/org';
 
 /** Why a listing isn't public, for its organisation's banner. */
@@ -23,6 +24,8 @@ export interface ListingView {
   hiddenBecause: HiddenReason[];
   /** The organisation viewing its own listing: photos come through its private route. */
   owner: boolean;
+  /** A moderator (#43), who can see listings that aren't public, to judge them. */
+  moderator: boolean;
 }
 
 const parse = <T>(
@@ -47,6 +50,7 @@ export async function loadListingPage(
   const uri = `at://${org.did}/pet.homeward.listing/${rkey}`;
   const [viewer, row] = await Promise.all([getCurrentUser(), getListing(getDb(), uri)]);
   const owner = viewer?.did === org.did;
+  const moderator = !owner && isAdmin(viewer?.did);
   const reasons = (status: string, published: boolean): HiddenReason[] => [
     ...(!published ? (['draft'] as const) : []),
     ...(published && !(PUBLIC_LISTING_STATUSES as readonly string[]).includes(status)
@@ -73,6 +77,7 @@ export async function loadListingPage(
         animals: animals.filter((animal) => animal !== undefined),
         hiddenBecause: reasons(found.record.status, found.published),
         owner,
+        moderator,
       };
     }
     // Their account is unreachable: show what the index has.
@@ -82,7 +87,7 @@ export async function loadListingPage(
   const listing = parse<pet.homeward.listing.Main>(pet.homeward.listing, row.record);
   if (!listing) return undefined;
   const hiddenBecause = reasons(listing.status, true);
-  if (!owner && hiddenBecause.length > 0) return undefined;
+  if (!owner && !moderator && hiddenBecause.length > 0) return undefined;
   const { $type: _type, ...record } = listing;
   const animals = row.animals.flatMap((animal) => {
     const parsed = parse<pet.homeward.animal.Main>(pet.homeward.animal, animal.record);
@@ -90,5 +95,5 @@ export async function loadListingPage(
     const { $type: _animal, ...animalRecord } = parsed;
     return [{ rkey: animal.uri.split('/').pop()!, record: animalRecord }];
   });
-  return { rkey, listing: record, animals, hiddenBecause, owner };
+  return { rkey, listing: record, animals, hiddenBecause, owner, moderator };
 }

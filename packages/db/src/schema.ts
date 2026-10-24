@@ -254,3 +254,35 @@ export const shareLinkViews = pgTable(
   },
   (t) => [index('share_link_views_link').on(t.linkId)],
 );
+
+/**
+ * Moderation of organisations (#43): the latest decision and its reason. Kept apart from
+ * the index so it survives a rebuild; `index_orgs.trusted` mirrors "approved" for public
+ * queries. No row means the organisation is waiting for its first review.
+ */
+export const orgReviews = pgTable('org_reviews', {
+  did: text().primaryKey(),
+  /** pending, approved, rejected or revoked. */
+  state: text().notNull(),
+  reason: text(),
+  decidedBy: text('decided_by'),
+  decidedAt: timestamp('decided_at', { withTimezone: true }),
+  /** When the organisation last asked to be looked at again. */
+  requestedAt: timestamp('requested_at', { withTimezone: true }),
+});
+
+/** Every moderation decision and request for review, for accountability between moderators. */
+export const orgReviewLog = pgTable(
+  'org_review_log',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    did: text().notNull(),
+    /** approve, reject, revoke or requestReview. */
+    action: text().notNull(),
+    reason: text(),
+    /** The moderator, or the organisation itself when it asks for another review. */
+    actorDid: text('actor_did').notNull(),
+    at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('org_review_log_did').on(t.did, t.at)],
+);

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { signOut } from '@/app/actions/sign-out';
+import { isAdmin } from '@/server/admin/admins';
 import { getCurrentUser } from '@/server/auth/session';
 
 /** "Sign in", or the signed-in handle with a sign-out button (works without JavaScript). */
@@ -13,6 +14,8 @@ export async function AccountNav() {
     <form action={signOut} className="flex flex-wrap items-center gap-3">
       <span className="text-muted">{t('signedInAs', { handle: user.handle })}</span>
       <Link href="/account">{t('account')}</Link>
+      {/* Moderators only (#43); a configuration check, no lookup. */}
+      {isAdmin(user.did) && <Link href="/admin">{t('admin')}</Link>}
       <button
         type="submit"
         className="cursor-pointer text-accent underline underline-offset-[0.15em] hover:text-accent-hover"

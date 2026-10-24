@@ -102,6 +102,15 @@ export default async function ListingPage({ params }: Props) {
         <Link href={home}>{t('backTo', { name })}</Link>
       </p>
 
+      {view.moderator && view.hiddenBecause.length > 0 && (
+        <p
+          role="status"
+          className="mb-6 rounded-md border border-dashed border-unknown-line bg-unknown-soft p-4 text-unknown"
+        >
+          {t('moderatorBanner', { name })} <Link href="/admin">{t('moderatorLink')}</Link>
+        </p>
+      )}
+
       {view.owner && (
         <div
           role="status"
@@ -222,7 +231,13 @@ export default async function ListingPage({ params }: Props) {
               did={org.did}
               animalKey={rkey}
               animal={record}
-              owner={view.owner}
+              photos={
+                view.owner
+                  ? 'owner'
+                  : view.moderator && view.hiddenBecause.length > 0
+                    ? 'moderator'
+                    : 'public'
+              }
             />
           ))}
           <section aria-labelledby="criteria" className="mb-12">
