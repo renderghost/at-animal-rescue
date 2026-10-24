@@ -9,6 +9,7 @@ import { OrgFiltersForm } from '@/components/OrgFiltersForm';
 import { sortedCountries } from '@/i18n/countries';
 import { getPreferences } from '@/i18n/preferences';
 import { formatLocale } from '@/lib/format';
+import { isAdmin } from '@/server/admin/admins';
 import { getCurrentUser } from '@/server/auth/session';
 import { filtersToQuery, hasFilters, parseOrgFilters } from '@/server/org-page/filters';
 import { contactLinks } from '@/server/org-page/contact';
@@ -33,6 +34,8 @@ export default async function OrgPage({ params, searchParams }: Props) {
   const filters = parseOrgFilters(await searchParams);
   const viewer = await getCurrentUser();
   const ownerView = viewer?.did === org.did;
+  // Moderators see what isn't public yet too, labelled as the organisation sees it (#43).
+  const staffView = ownerView || isAdmin(viewer?.did);
   const t = await getTranslations('OrgPage');
   const { language, country } = await getPreferences();
   const locale = formatLocale(language, country);
@@ -153,7 +156,7 @@ export default async function OrgPage({ params, searchParams }: Props) {
                     key={listing.uri}
                     listing={listing}
                     locale={locale}
-                    ownerView={ownerView}
+                    ownerView={staffView}
                   />
                 ))}
               </div>
@@ -177,7 +180,7 @@ export default async function OrgPage({ params, searchParams }: Props) {
                     key={listing.uri}
                     listing={listing}
                     locale={locale}
-                    ownerView={ownerView}
+                    ownerView={staffView}
                   />
                 ))}
               </div>

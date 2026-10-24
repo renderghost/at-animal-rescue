@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { ageOf, type AnimalRecord } from '@/server/animals/animal-form';
-import { PhotoGallery } from './PhotoGallery';
+import { PhotoGallery, type PhotoSource } from './PhotoGallery';
 import { VideoEmbed } from './VideoEmbed';
 
 /** One animal on a listing page: photos, the facts, its story and videos. */
@@ -9,13 +9,14 @@ export async function AnimalDetails({
   did,
   animalKey,
   animal,
-  owner,
+  photos,
   headingLevel = 2,
 }: {
   did: string;
   animalKey: string;
   animal: AnimalRecord;
-  owner: boolean;
+  /** Where photos come from: the public image route, or the owner's or moderators'. */
+  photos: PhotoSource;
   headingLevel?: 2 | 3;
 }) {
   const t = await getTranslations('ListingPage');
@@ -73,7 +74,7 @@ export async function AnimalDetails({
       <Heading id={`animal-${animalKey}`} className="mb-4 text-2xl font-bold">
         {name}
       </Heading>
-      <PhotoGallery did={did} animalKey={animalKey} photos={animal.photos ?? []} owner={owner} />
+      <PhotoGallery did={did} animalKey={animalKey} photos={animal.photos ?? []} source={photos} />
 
       <dl className="mb-6 grid gap-x-6 gap-y-2 sm:grid-cols-[max-content_1fr]">
         {facts.map(([term, value]) => (

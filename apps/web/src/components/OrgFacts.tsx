@@ -14,6 +14,8 @@ export async function OrgFacts({
   email,
   charity,
   locale,
+  id = 'facts',
+  heading: Heading = 'h2',
 }: {
   /** The organisation's current verified handle. */
   handle?: string;
@@ -22,6 +24,9 @@ export async function OrgFacts({
   email?: EmailFact;
   charity?: OrganisationProfile['charityRegistration'];
   locale: string;
+  /** For pages that show several, such as the moderation console. */
+  id?: string;
+  heading?: 'h2' | 'h4';
 }) {
   const t = await getTranslations('OrgPage');
   const date = (value: Date | string) =>
@@ -95,10 +100,10 @@ export async function OrgFacts({
   }
 
   return (
-    <section aria-labelledby="facts" className="rounded-lg border border-line bg-surface p-5">
-      <h2 id="facts" className="mb-2 text-lg font-bold">
+    <section aria-labelledby={id} className="rounded-lg border border-line bg-surface p-5">
+      <Heading id={id} className="mb-2 text-lg font-bold">
         {t('facts')}
-      </h2>
+      </Heading>
       <p className="mb-3 text-sm text-muted">{t('factsIntro')}</p>
       {items.length > 0 ? (
         <ul className="grid gap-3 text-sm">{items}</ul>

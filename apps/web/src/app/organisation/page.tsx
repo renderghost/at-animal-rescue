@@ -3,10 +3,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { requestReviewAction } from '@/app/actions/admin';
 import { changeStatusAction, deleteListingAction } from '@/app/actions/listings';
 import { Badge } from '@/components/Badge';
 import { Button, ButtonLink } from '@/components/Button';
 import { getPreferences } from '@/i18n/preferences';
+import { orgReviews } from '@/server/admin/admin';
 import { requireOrganisation } from '@/server/animals/current-org';
 import { getDb } from '@/server/db';
 import { isoDate } from '@/server/listings/lifecycle';
@@ -23,6 +25,7 @@ type SearchParams = {
   error?: string;
   deleted?: string;
   removed?: string;
+  reviewRequested?: string;
 };
 
 const GROUPS = ['available', 'reserved', 'draft', 'adopted', 'withdrawn'] as const;
@@ -46,10 +49,11 @@ export default async function DashboardPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { did, client } = await requireOrganisation();
-  const [{ listings, unlisted, pdsUnavailable }, org, hidden] = await Promise.all([
+  const [{ listings, unlisted, pdsUnavailable }, org, hidden, review] = await Promise.all([
     listListings(did, client),
     findOrg(getDb(), { did }),
     hiddenListingKeys(getDb(), did),
+    orgReviews().get(did),
   ]);
   const t = await getTranslations('Dashboard');
   const { formatLocale: locale } = await getPreferences();
@@ -200,13 +204,38 @@ export default async function DashboardPage({
         <h2 id="review" className="mb-3 text-xl font-bold">
           {t('review')}
         </h2>
+        {params.reviewRequested && (
+          <p role="status" className="mb-2 rounded-md border border-line bg-sunken p-4">
+            {t('reviewRequested')}
+          </p>
+        )}
         {org?.approved ? (
           <p className="mb-2 flex flex-wrap items-center gap-2">
             <Badge tone="match">{t('approved')}</Badge>
           </p>
+        ) : review.state === 'rejected' || review.state === 'revoked' ? (
+          // The moderator's decision and reason, and the way back into the queue (#43).
+          <div className="mb-2 rounded-md border border-conflict-line bg-conflict-soft p-4 text-conflict">
+            <p className="font-semibold">
+              {review.state === 'rejected'
+                ? t('notApprovedYet')
+                : t('approvalRevoked', { date: dateOf(isoDate(review.decidedAt!)) })}
+            </p>
+            {review.reason && (
+              <p className="mb-2">{t('moderatorReason', { reason: review.reason })}</p>
+            )}
+            <p className="mb-3">{t('askAgainHint')}</p>
+            <form action={requestReviewAction}>
+              <Button type="submit" variant="secondary">
+                {t('askAgain')}
+              </Button>
+            </form>
+          </div>
         ) : (
           <p className="mb-2 rounded-md border border-dashed border-unknown-line bg-unknown-soft p-4 text-unknown">
-            {t('awaitingReview')}
+            {review.requestedAt
+              ? t('askedAgain', { date: dateOf(isoDate(review.requestedAt)) })
+              : t('awaitingReview')}
           </p>
         )}
         {hidden.length > 0 && (

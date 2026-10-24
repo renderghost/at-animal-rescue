@@ -65,7 +65,12 @@ export class IndexStore {
     await this.db.transaction(async (tx) => {
       await tx
         .insert(indexOrgs)
-        .values({ did, ...values })
+        // A rebuilt index takes approval from the moderators' decisions (#43).
+        .values({
+          did,
+          ...values,
+          trusted: sql`EXISTS (SELECT 1 FROM org_reviews r WHERE r.did = ${did} AND r.state = 'approved')`,
+        })
         .onConflictDoUpdate({
           target: indexOrgs.did,
           // Keep the known handle if this update didn't carry one.
