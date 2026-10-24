@@ -588,11 +588,7 @@
       "compositePrimaryKeys": {
         "private_blobs_did_record_cid_pk": {
           "name": "private_blobs_did_record_cid_pk",
-          "columns": [
-            "did",
-            "record",
-            "cid"
-          ]
+          "columns": ["did", "record", "cid"]
         }
       },
       "uniqueConstraints": {},
@@ -676,11 +672,7 @@
       "compositePrimaryKeys": {
         "private_records_did_collection_rkey_pk": {
           "name": "private_records_did_collection_rkey_pk",
-          "columns": [
-            "did",
-            "collection",
-            "rkey"
-          ]
+          "columns": ["did", "collection", "rkey"]
         }
       },
       "uniqueConstraints": {},
@@ -860,12 +852,8 @@
           "name": "share_link_views_link_id_share_links_id_fk",
           "tableFrom": "share_link_views",
           "tableTo": "share_links",
-          "columnsFrom": [
-            "link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["link_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -959,9 +947,7 @@
         "share_links_token_hash_unique": {
           "name": "share_links_token_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
+          "columns": ["token_hash"]
         }
       },
       "policies": {},
