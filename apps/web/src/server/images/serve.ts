@@ -14,6 +14,10 @@ export type ServedImage =
   { status: 200; body: Buffer; contentType: 'image/webp' } | { status: 404 } | { status: 502 };
 
 const key = (did: string, cid: string, size: ImageWidth | 'original') => `${did}/${cid}/${size}`;
+
+/** Every cache entry of one photo: each width and the original. */
+export const IMAGE_CACHE_KEYS = (did: string, cid: string) =>
+  [...IMAGE_WIDTHS, 'original' as const].map((size) => key(did, cid, size));
 const inFlight = new Map<string, Promise<ServedImage>>();
 
 /** Resizes to the width, never enlarging; WebP drops any metadata the original had. */
@@ -41,7 +45,7 @@ export async function serveImage(
 ): Promise<ServedImage> {
   if (!(await deps.isPublic(did, cid))) {
     // Withdrawn, hidden or deleted: nothing of it stays on our disk.
-    await deps.cache.delete([...IMAGE_WIDTHS, 'original' as const].map((s) => key(did, cid, s)));
+    await deps.cache.delete(IMAGE_CACHE_KEYS(did, cid));
     return { status: 404 };
   }
   const cached = await deps.cache.get(key(did, cid, width));

@@ -3,14 +3,19 @@ import { Client } from '@atproto/lex';
 import { pet } from '@homeward/lexicons';
 import { cache } from 'react';
 import { getCurrentUser, getPdsSession } from '../auth/session';
+import { writeThroughDeps } from '../index/index-writer';
+import { withWriteThrough } from '../index/write-through';
 import { getPrivateStore } from '../private-store';
 import type { OrganisationProfile } from './organisation-form';
 import { detectRole, type Role } from './role';
 
-/** A client for the signed-in user's repository, or undefined when signed out. */
+/**
+ * A client for the signed-in user's repository, or undefined when signed out. What it
+ * writes is indexed straight away (#24).
+ */
 export async function getRepoClient(): Promise<Client | undefined> {
-  const session = await getPdsSession();
-  return session && new Client(session);
+  const [session, user] = await Promise.all([getPdsSession(), getCurrentUser()]);
+  return session && user && withWriteThrough(new Client(session), user.did, writeThroughDeps());
 }
 
 /** A record from the signed-in user's own repository, or why there isn't one. */

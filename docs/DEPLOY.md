@@ -125,6 +125,12 @@ Log in to Umami at `https://<analytics domain>/` (it starts as `admin` / `umami`
 - **Rolling back:** on the server, run `IMAGE_TAG=sha-<earlier commit> docker compose -f compose.production.yml up -d`. Migrations only ever move forwards, and lexicons and schema changes are backwards compatible, so an older app runs on a newer database. Check the migration list first if the change was large.
 - **Changing settings:** edit `/opt/homeward/.env`, then run `docker compose -f compose.production.yml up -d`.
 - **Logs:** `docker compose -f compose.production.yml logs -f web indexer`.
+- **After an outage:** if the indexer was down, or an account's listings look out of date, resync from the accounts' repositories (#24). Use `--known` for every organisation in the index, or name the accounts:
+
+  ```sh
+  docker compose -f compose.production.yml run --rm indexer backfill --known
+  docker compose -f compose.production.yml run --rm indexer backfill hillfarm.example.org
+  ```
 
 ## Backups
 
