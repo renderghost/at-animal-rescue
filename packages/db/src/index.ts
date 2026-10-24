@@ -36,3 +36,4 @@ export * from './search';
 export * from './service-state';
 export * from './share-links';
 export * from './backfill';
+export * from './sign-in-failures';

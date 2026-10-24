@@ -360,3 +360,21 @@ export const listingModerationLog = pgTable(
   },
   (t) => [index('listing_moderation_log_listing').on(t.listingUri, t.at)],
 );
+
+/**
+ * Failed sign-ins (#67), to limit guessing app passwords through us. Only a keyed hash of
+ * the account or client address is stored, and rows go once they're out of the window.
+ */
+export const signInFailures = pgTable(
+  'sign_in_failures',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    /** "did:" or "ip:" followed by a keyed hash. */
+    bucket: text().notNull(),
+    at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('sign_in_failures_bucket').on(t.bucket, t.at),
+    index('sign_in_failures_at').on(t.at),
+  ],
+);

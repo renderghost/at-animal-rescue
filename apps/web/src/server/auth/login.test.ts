@@ -1,7 +1,12 @@
 import { LexAuthFactorError } from '@atproto/lex-password-session';
 import { describe, expect, it, vi } from 'vitest';
 import type { IdentityResolver } from './identity';
-import { loginWithAppPassword, type LoginDependencies, type PdsSession } from './login';
+import {
+  loginWithAppPassword,
+  type LoginDependencies,
+  type PdsSession,
+  type SignInLimiter,
+} from './login';
 
 const did = 'did:plc:ewvi7nxzyoun6zhxrhs64oiz';
 const resolver: IdentityResolver = {
@@ -105,5 +110,85 @@ describe('loginWithAppPassword', () => {
       loginWithAppPassword({ ...input, identifier: 'not a handle' }, deps(createSession)),
     ).rejects.toMatchObject({ code: 'invalidIdentifier' });
     expect(createSession).not.toHaveBeenCalled();
+  });
+
+  describe('with a sign-in limiter (#67)', () => {
+    function limiter(blocked: { did?: string; ip?: string } = {}) {
+      const events: string[] = [];
+      const until = new Date('2026-10-24T10:15:00Z');
+      const fake: SignInLimiter = {
+        blockedUntil: async (key) =>
+          (key.did && key.did === blocked.did) || (key.ip && key.ip === blocked.ip)
+            ? until
+            : undefined,
+        failed: async (key) => void events.push(`failed ${key.did ?? '-'} ${key.ip ?? '-'}`),
+        succeeded: async (account) => void events.push(`succeeded ${account}`),
+      };
+      return { fake, events, until };
+    }
+    const ip = '203.0.113.7';
+
+    it('stops a blocked address before looking anything up', async () => {
+      const { fake, until } = limiter({ ip });
+      const resolveHandle = vi.fn(resolver.resolveHandle);
+      const createSession = vi.fn();
+      await expect(
+        loginWithAppPassword(
+          { ...input, ip },
+          { resolver: { ...resolver, resolveHandle }, createSession, limiter: fake },
+        ),
+      ).rejects.toMatchObject({ code: 'tooManyAttempts', retryAfter: until });
+      expect(resolveHandle).not.toHaveBeenCalled();
+      expect(createSession).not.toHaveBeenCalled();
+    });
+
+    it('stops a blocked account, by DID, before asking its PDS', async () => {
+      const { fake } = limiter({ did });
+      const createSession = vi.fn();
+      await expect(
+        loginWithAppPassword({ ...input, ip }, { ...deps(createSession), limiter: fake }),
+      ).rejects.toMatchObject({ code: 'tooManyAttempts' });
+      expect(createSession).not.toHaveBeenCalled();
+    });
+
+    it('counts wrong passwords against the account and address, and clears on success', async () => {
+      const { fake, events } = limiter();
+      const wrong = async () => {
+        throw Object.assign(new Error('AuthenticationRequired'), {
+          error: 'AuthenticationRequired',
+        });
+      };
+      await expect(
+        loginWithAppPassword({ ...input, ip }, { ...deps(wrong), limiter: fake }),
+      ).rejects.toMatchObject({ code: 'invalidCredentials' });
+      const { pdsSession } = session('com.atproto.appPass');
+      await loginWithAppPassword(
+        { ...input, ip },
+        { ...deps(async () => pdsSession), limiter: fake },
+      );
+      expect(events).toEqual([`failed ${did} ${ip}`, `succeeded ${did}`]);
+    });
+
+    it('counts unknown handles against the address only, and outages not at all', async () => {
+      const { fake, events } = limiter();
+      await expect(
+        loginWithAppPassword(
+          { ...input, identifier: 'not a handle', ip },
+          { ...deps(vi.fn()), limiter: fake },
+        ),
+      ).rejects.toMatchObject({ code: 'invalidIdentifier' });
+      await expect(
+        loginWithAppPassword(
+          { ...input, ip },
+          {
+            ...deps(async () => {
+              throw new Error('ECONNREFUSED');
+            }),
+            limiter: fake,
+          },
+        ),
+      ).rejects.toMatchObject({ code: 'serverUnreachable' });
+      expect(events).toEqual([`failed - ${ip}`]);
+    });
   });
 });
