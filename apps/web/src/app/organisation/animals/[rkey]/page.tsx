@@ -6,6 +6,7 @@ import { deleteAnimalDraft } from '@/app/actions/animals';
 import { AnimalForm } from '@/components/AnimalForm';
 import { AnimalMedia } from '@/components/AnimalMedia';
 import { Button } from '@/components/Button';
+import { WelfareNote } from '@/components/WelfareNotes';
 import { animalToFormValues } from '@/server/animals/animal-form';
 import { isAnimalKey, loadAnimal, photoCid } from '@/server/animals/animals';
 import { requireOrganisation } from '@/server/animals/current-org';
@@ -53,6 +54,7 @@ export default async function EditAnimalPage({ params, searchParams }: Props) {
           <h1 className="mb-6 text-3xl font-bold">
             {t('editTitle', { name: animal.record.name })}
           </h1>
+          <WelfareNote kind="animal" />
           <AnimalForm
             rkey={rkey}
             initialValues={animalToFormValues(animal.record, animal.identification)}

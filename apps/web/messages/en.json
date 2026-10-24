@@ -14,7 +14,8 @@
   },
   "Footer": {
     "tagline": "Built on the AT Protocol. Your data stays yours.",
-    "hostedInEu": "Hosted in the EU."
+    "hostedInEu": "Hosted in the EU.",
+    "guidelines": "Welfare guidelines"
   },
   "Home": {
     "title": "Every rescue animal deserves the right home",
@@ -164,6 +165,7 @@
         "berneseMountainDog": "Bernese Mountain Dog",
         "bichonFrise": "Bichon Frise",
         "bloodhound": "Bloodhound",
+        "boerboel": "Boerboel",
         "borderCollie": "Border Collie",
         "borderTerrier": "Border Terrier",
         "borzoi": "Borzoi",
@@ -176,13 +178,17 @@
         "cairnTerrier": "Cairn Terrier",
         "caneCorso": "Cane Corso",
         "carpathianShepherd": "Carpathian Shepherd",
+        "caucasianShepherd": "Caucasian Shepherd (Ovcharka)",
         "cavalierKingCharlesSpaniel": "Cavalier King Charles Spaniel",
+        "centralAsianShepherd": "Central Asian Shepherd (Alabai)",
         "chihuahua": "Chihuahua",
         "chineseCrested": "Chinese Crested",
         "chowChow": "Chow Chow",
+        "czechoslovakianWolfdog": "Czechoslovakian Wolfdog",
         "dachshund": "Dachshund",
         "dalmatian": "Dalmatian",
         "dobermann": "Dobermann",
+        "dogoArgentino": "Dogo Argentino",
         "dogueDeBordeaux": "Dogue de Bordeaux",
         "englishBulldog": "English Bulldog",
         "englishCockerSpaniel": "English Cocker Spaniel",
@@ -190,6 +196,7 @@
         "englishSetter": "English Setter",
         "englishSpringerSpaniel": "English Springer Spaniel",
         "eurasier": "Eurasier",
+        "filaBrasileiro": "Fila Brasileiro",
         "flatCoatedRetriever": "Flat-coated Retriever",
         "frenchBulldog": "French Bulldog",
         "galgo": "Galgo Español",
@@ -238,6 +245,7 @@
         "saintBernard": "St Bernard",
         "saluki": "Saluki",
         "samoyed": "Samoyed",
+        "sarplaninac": "Šarplaninac",
         "schapendoes": "Schapendoes",
         "schnauzer": "Schnauzer",
         "sharPei": "Shar Pei",
@@ -245,11 +253,14 @@
         "shibaInu": "Shiba Inu",
         "shihTzu": "Shih Tzu",
         "siberianHusky": "Siberian Husky",
+        "southRussianShepherd": "South Russian Shepherd (Ovcharka)",
         "spanishMastiff": "Spanish Mastiff",
         "sprocker": "Sprocker",
         "stabyhoun": "Stabyhoun",
         "staffordshireBullTerrier": "Staffordshire Bull Terrier",
         "tibetanTerrier": "Tibetan Terrier",
+        "tornjak": "Tornjak",
+        "tosaInu": "Tosa Inu",
         "weimaraner": "Weimaraner",
         "westHighlandWhiteTerrier": "West Highland White Terrier",
         "whippet": "Whippet",
@@ -1003,7 +1014,8 @@
       "notReady": "Some answers are still needed before publishing.",
       "conflict": "One of the animals is missing or already in another open listing. Check the editor.",
       "unavailable": "We couldn't reach your account just now. Nothing more was published. Please try again.",
-      "photoMissing": "One of the animals' photos is missing. Remove it in the animal editor, then try again."
+      "photoMissing": "One of the animals' photos is missing. Remove it in the animal editor, then try again.",
+      "tooYoung": "One of the animals is too young to list yet. See below for when it can be."
     },
     "fee": {
       "none": "No adoption fee",
@@ -1439,6 +1451,53 @@
     "revoked": {
       "subject": "Approval for {name} has been withdrawn on Homeward",
       "body": "Hello,\n\nA moderator has withdrawn approval for {name}, so your listings are no longer public. Their reason:\n\n{reason}\n\nOnce you've dealt with this, ask for another review from your dashboard: {dashboard}\n\nHomeward"
+    }
+  },
+  "Welfare": {
+    "listingNote": "Before you publish, see the <link>welfare guidelines</link>. Puppies and kittens can be listed from {weeks} weeks old, and listings rehome animals: they never sell them.",
+    "animalNote": "Puppies and kittens can be listed from {weeks} weeks old. Give the birth date as exactly as you know it. See the <link>welfare guidelines</link>.",
+    "tooYoung": "{name} can be listed from {date}, at {weeks} weeks old.",
+    "saleHeading": "Wording that suggests selling",
+    "saleBody": "Your listing uses {phrases}. Homeward is for rehoming, not selling, so consider rewording (see the <link>welfare guidelines</link>). You can still publish.",
+    "breedHeading": "Breed rules to check",
+    "breedOrganisation": "A breed in this listing may be restricted where the animal is. Check the current law before rehoming.",
+    "breedVisitor": "A breed here may be restricted where the animal is or where you are. Check the current law before adopting.",
+    "level": {
+      "banned": "{breed} ({animal}) may be banned in {country}: {law}.",
+      "restricted": "{breed} ({animal}) may need a licence or conditions in {country}: {law}.",
+      "noImport": "{breed} ({animal}) may not be brought into {country}: {law}."
+    },
+    "source": "Source",
+    "notReviewed": "These rules come from public sources and haven't been legally reviewed yet. Laws change, and many also cover crosses and dogs that look like a listed breed."
+  },
+  "Guidelines": {
+    "title": "Welfare guidelines",
+    "intro": "How Homeward listings keep animals' welfare first, for the rescues that publish them and the people who adopt.",
+    "draft": "Draft: these guidelines are being reviewed by rescue and veterinary experts, and they aren't legal advice.",
+    "age": {
+      "heading": "Old enough to leave their mother",
+      "body": "Puppies and kittens can be listed from {weeks} weeks old, after time with their mother and litter. Homeward won't publish a listing with a younger puppy or kitten, and says when it can be published. If you only know the year or month of birth, we count the youngest the animal could be."
+    },
+    "selling": {
+      "heading": "Rehoming, never selling",
+      "body": "Homeward is for rescues rehoming animals, not for selling or breeding them. Describe the animal, not a sale: words such as \"for sale\", \"price\", \"breeder\" or \"papers\" are pointed out before you publish. The adoption fee is shown as no fee, a suggested donation or an adoption fee, never as a price."
+    },
+    "honest": {
+      "heading": "Honest descriptions",
+      "body": "Say what you know about an animal's health, behaviour and needs, and what you don't. Use the criteria to say which homes suit them: adopters see how their own home fits, criterion by criterion."
+    },
+    "breeds": {
+      "heading": "Breed rules by country",
+      "body": "Some countries ban or restrict certain dog breeds. Homeward warns the rescue when it publishes, and visitors when they view a listing, if a breed may be restricted where the animal or the visitor is.",
+      "country": "Country",
+      "rule": "Rule",
+      "breeds": "Breeds",
+      "law": "Law",
+      "levels": {
+        "banned": "Banned",
+        "restricted": "Licence or conditions",
+        "noImport": "Can't be brought in"
+      }
     }
   }
 }

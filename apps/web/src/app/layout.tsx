@@ -60,6 +60,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <p>
                 {t('Footer.tagline')} {t('Footer.hostedInEu')}
               </p>
+              <p>
+                <Link href="/guidelines">{t('Footer.guidelines')}</Link>
+              </p>
             </div>
           </footer>
         </NextIntlClientProvider>

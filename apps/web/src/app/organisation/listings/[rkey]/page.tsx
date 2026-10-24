@@ -9,6 +9,7 @@ import { CriteriaList } from '@/components/CriteriaList';
 import { CrossPostFields } from '@/components/CrossPostFields';
 import { ExampleHomes } from '@/components/ExampleHomes';
 import { ListingForm } from '@/components/ListingForm';
+import { WelfareNote } from '@/components/WelfareNotes';
 import { getPreferences } from '@/i18n/preferences';
 import { listAnimals } from '@/server/animals/animals';
 import { requireOrganisation } from '@/server/animals/current-org';
@@ -100,6 +101,7 @@ export default async function EditListingPage({ params, searchParams }: Props) {
           {crossPost('publishedNotPosted')}
         </p>
       )}
+      <WelfareNote kind="listing" />
       <ListingForm
         rkey={rkey}
         initialValues={listingToFormValues(did, record)}
