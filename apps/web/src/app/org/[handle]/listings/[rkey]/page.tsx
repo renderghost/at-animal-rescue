@@ -172,9 +172,16 @@ export default async function ListingPage({ params }: Props) {
               </p>
             ) : (
               <>
-                <ButtonLink href={preferred.href} className="w-full">
-                  {preferred.label}
-                </ButtonLink>
+                {/* Adopters write their message on Homeward first, to include their answers (#42). */}
+                {fit.kind === 'match' ? (
+                  <ButtonLink href={`${path}/enquire`} className="w-full">
+                    {t('enquireAdopter', { name })}
+                  </ButtonLink>
+                ) : (
+                  <ButtonLink href={preferred.href} className="w-full">
+                    {preferred.label}
+                  </ButtonLink>
+                )}
                 {others.length > 0 && (
                   <p className="mt-3 text-sm">
                     {t('enquireOther')}{' '}
