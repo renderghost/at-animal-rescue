@@ -1,0 +1,20 @@
+# Caddy (#47): HTTPS with automatic certificates, in front of the web app.
+{
+	# Let's Encrypt notices go to the operator (ACME_EMAIL in .env).
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+	# Caddy sets X-Forwarded-For itself, so the app can trust it from here (#67).
+	reverse_proxy web:3000
+}
+
+# Optional sites, such as analytics (sites/analytics.caddy.example).
+import sites/*.caddy

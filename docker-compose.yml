@@ -1,4 +1,4 @@
-# Local development services. Production deployment is tracked in #47.
+# Local development services. Production: deploy/compose.production.yml (docs/DEPLOY.md).
 name: homeward
 
 services:

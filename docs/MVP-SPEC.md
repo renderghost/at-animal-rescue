@@ -71,7 +71,7 @@ apps/indexer ◄── Jetstream (pet.homeward.* collections) ──► Postgres
   - `packages/lexicons`: lexicon JSON plus generated TypeScript.
   - `packages/matching`: a pure, tested matching function shared by server and client.
   - `packages/db`: Drizzle schema and migrations.
-- **Data residency:** EU-native hosting (Hetzner, Scaleway or Clever Cloud) via Docker Compose. EU processors only, including email (e.g. Scaleway TEM or Brevo).
+- **Data residency:** EU-native hosting at **Scaleway** (Paris) via Docker Compose: one Instance running Caddy (TLS), the web app, the indexer and Postgres/PostGIS, with backups in Scaleway Object Storage and, with #48, email through Scaleway Transactional Email. EU processors only. Images are built by GitHub Actions and stored in GitHub Container Registry (code only, no personal data). **Deploys are automatic** on every merge to `main` that passes CI: images are pushed, migrations run, then the app restarts; if migrations fail the running version stays up. **Backups:** nightly `pg_dump`, encrypted with age to public keys whose private keys are kept offline, kept 7 daily, 4 weekly and 6 monthly. Runbook: `docs/DEPLOY.md` (#47).
 
 ### Sessions (app passwords)
 

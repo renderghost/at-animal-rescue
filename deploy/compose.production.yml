@@ -1,0 +1,118 @@
+# Production stack (#47) on one EU server: Caddy (TLS), the web app, the indexer,
+# Postgres/PostGIS and nightly encrypted backups. Runs from /opt/homeward, next to a .env
+# made from production.env.example, which both configures the containers and fills in the
+# ${...} values below (see docs/DEPLOY.md).
+name: homeward
+
+x-app: &app
+  env_file: .env
+  restart: unless-stopped
+  environment:
+    DATABASE_URL: postgres://homeward:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/homeward
+  depends_on:
+    postgres:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./sites:/etc/caddy/sites:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+
+  web:
+    <<: *app
+    image: ghcr.io/renderghost/homeward-web:${IMAGE_TAG:-latest}
+    volumes:
+      # Public photos, resized; can always be rebuilt from the PDS (#26).
+      - image-cache:/data/images
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  indexer:
+    <<: *app
+    image: ghcr.io/renderghost/homeward-indexer:${IMAGE_TAG:-latest}
+
+  # Runs once per deploy, before the app starts.
+  migrate:
+    image: ghcr.io/renderghost/homeward-indexer:${IMAGE_TAG:-latest}
+    command: migrate
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://homeward:${POSTGRES_PASSWORD}@postgres:5432/homeward
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  postgres:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: homeward
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: homeward
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U homeward -d homeward']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    # Not published: only the containers on this network reach it.
+
+  backup:
+    image: ghcr.io/renderghost/homeward-backup:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PGHOST: postgres
+      PGUSER: homeward
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: homeward
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Cookie-free analytics (#46), only with `--profile analytics`; its own database on the
+  # same server (create it once, see docs/DEPLOY.md).
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-v2.19.0
+    profiles: [analytics]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://homeward:${POSTGRES_PASSWORD}@postgres:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:-}
+      DISABLE_TELEMETRY: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  caddy-data:
+  caddy-config:
+  image-cache:
+  postgres-data:

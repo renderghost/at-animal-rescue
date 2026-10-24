@@ -54,6 +54,10 @@ Internal packages are consumed as TypeScript source and have no build step.
 | `pnpm services:up`  | Start local Postgres/PostGIS and Mailpit |
 | `pnpm db:migrate`   | Apply database migrations                |
 
+## Deploying
+
+Production runs on one Scaleway server in Paris, deployed automatically when a change reaches `main`. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ## Contributing
 
 Each GitHub issue gets its own `feature/<issue#>-<slug>` branch from `main` and its own pull request against `main`; PRs are never stacked. See [`CLAUDE.md`](CLAUDE.md) for working conventions.

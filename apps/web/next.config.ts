@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
@@ -11,6 +12,9 @@ try {
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // A self-contained server for the production image (#47), traced from the monorepo root.
+  output: 'standalone',
+  outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
   // Internal workspace packages ship TypeScript source.
   transpilePackages: ['@homeward/db', '@homeward/lexicons', '@homeward/matching'],
   poweredByHeader: false,
