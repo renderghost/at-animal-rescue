@@ -13,6 +13,10 @@ Production is different again: see [DEPLOY.md](DEPLOY.md). The table at the end 
 ## What you need
 
 - **Docker:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) on a Mac or Windows, or Docker Engine with Compose 2.24 or later on Linux. In Docker Desktop's settings, under Resources, give it at least 4 GB of memory.
+- **Docker buildx** (recommended): Docker's modern builder, which makes builds faster. Docker Desktop includes it. Without it, Docker says `buildx Docker CLI plugin not found: falling back to the classic builder`, and builds still work, just more slowly. To add it:
+  - Mac with Homebrew (for example with Colima): `brew install docker-buildx`, then `mkdir -p ~/.docker/cli-plugins && ln -sfn "$(brew --prefix)/opt/docker-buildx/bin/docker-buildx" ~/.docker/cli-plugins/docker-buildx`
+  - Ubuntu or Debian: `sudo apt install docker-buildx-plugin` if you installed Docker from Docker's own repository, or `sudo apt install docker-buildx` if it came from Ubuntu's.
+  - Check it worked: `docker buildx version`
 - **Git**, to get the code.
 - **For live reload, and before you push a change:** Node 22 and pnpm. Install Node from [nodejs.org](https://nodejs.org) (or with `nvm install`, which reads `.nvmrc`), then run `corepack enable`, which brings the right pnpm.
 - **On Windows:** use WSL 2, and keep the code inside the Linux file system (for example `~/code`), not under `C:\`.
@@ -125,6 +129,7 @@ Never commit `.env`. It's listed in `.gitignore`.
 | `container homeward-indexer-1 is unhealthy`             | The indexer can't reach the network: it needs an internet connection. Homeward itself still works. `docker compose logs indexer` says more.                   |
 | `service "migrate" didn't complete successfully`        | Run `docker compose logs migrate`. On a first start the database is sometimes slow: run the command again.                                                    |
 | The build stops with `killed` or `exit code: 137`       | Docker ran out of memory. Give it at least 4 GB in Docker Desktop's settings.                                                                                 |
+| `buildx Docker CLI plugin not found`                    | Builds still work, more slowly. Install buildx: see [What you need](#what-you-need).                                                                          |
 | A warning that the platform `linux/amd64` doesn't match | Expected on Apple Silicon Macs: PostGIS only publishes Intel images, which run through Rosetta. It's harmless.                                                |
 | Signing in fails                                        | Use an app password, not the account's password, and check the handle. Your computer needs an internet connection.                                            |
 | Your change doesn't show (option 1)                     | Run `docker compose up --build --wait`: without `--build`, Docker runs the code as it was last built.                                                         |
