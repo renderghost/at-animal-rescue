@@ -4,20 +4,23 @@ import { photoCid } from '@/server/animals/animals';
 
 type Photo = NonNullable<AnimalRecord['photos']>[number];
 
+export type PhotoSource = 'public' | 'owner' | 'moderator';
+
 /**
  * An animal's photos: the cover photo large, the rest in a grid. Public pages use Homeward's
- * image route (#26); the organisation previewing its own listing, its private route.
+ * image route (#26); the organisation previewing its own listing, its private route; a
+ * moderator judging one that isn't public yet, the moderators' route (#43).
  */
 export function PhotoGallery({
   did,
   animalKey,
   photos,
-  owner,
+  source,
 }: {
   did: string;
   animalKey: string;
   photos: Photo[];
-  owner: boolean;
+  source: PhotoSource;
 }) {
   const image = (photo: Photo, sizes: string, className: string) => {
     const cid = photoCid(photo);
@@ -25,8 +28,14 @@ export function PhotoGallery({
     return (
       // eslint-disable-next-line @next/next/no-img-element -- sized and cached by our image route
       <img
-        src={owner ? `/organisation/animals/${animalKey}/photos/${cid}` : imageUrl(did, cid, 800)}
-        srcSet={owner ? undefined : imageSrcSet(did, cid)}
+        src={
+          source === 'owner'
+            ? `/organisation/animals/${animalKey}/photos/${cid}`
+            : source === 'moderator'
+              ? `/admin/photos/${encodeURIComponent(did)}/${cid}`
+              : imageUrl(did, cid, 800)
+        }
+        srcSet={source === 'public' ? imageSrcSet(did, cid) : undefined}
         sizes={sizes}
         alt={photo.alt}
         width={width}

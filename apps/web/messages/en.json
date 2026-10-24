@@ -9,7 +9,8 @@
     "signIn": "Sign in",
     "signOut": "Sign out",
     "signedInAs": "Signed in as @{handle}",
-    "account": "Your profile"
+    "account": "Your profile",
+    "admin": "Moderation"
   },
   "Footer": {
     "tagline": "Built on the AT Protocol. Your data stays yours.",
@@ -1025,6 +1026,13 @@
     "review": "Review",
     "awaitingReview": "Awaiting review. A moderator approves each organisation once. Until then your profile is public but your listings aren't; after that, everything you publish is public straight away.",
     "approved": "Approved. Your published listings are public.",
+    "notApprovedYet": "Not approved yet, so your listings aren't public.",
+    "approvalRevoked": "Approval withdrawn on {date}, so your listings aren't public.",
+    "moderatorReason": "The moderator's reason: {reason}",
+    "askAgainHint": "Once you've dealt with this, ask for another review.",
+    "askAgain": "Ask for another review",
+    "askedAgain": "You asked for another review on {date}. A moderator will look again soon.",
+    "reviewRequested": "Your request was sent.",
     "hiddenCount": "{count, plural, one {# listing is hidden after a report.} other {# listings are hidden after a report.}}",
     "pdsUnavailable": "We couldn't reach your account just now, so only your drafts are shown.",
     "listings": "Listings",
@@ -1124,6 +1132,8 @@
     "enquireWebsite": "Visit {name}'s website",
     "enquireOther": "Or:",
     "enquireAdopter": "Get in touch with {name}",
+    "moderatorBanner": "This listing isn't public. You can see it because you moderate Homeward, to help you judge {name}.",
+    "moderatorLink": "Back to moderation",
     "enquireSubject": "Adoption enquiry: {title}",
     "enquireBody": "Hello,\n\nI found {title} on Homeward and would like to know more:\n{url}\n\n",
     "adoptedThanks": "{title} found a home. See the other animals at {name}.",
@@ -1375,5 +1385,60 @@
     "nameAll": "All animals",
     "nameNear": "{animals} near {place}",
     "nameWithin": "{name}, within {distance}"
+  },
+  "Admin": {
+    "title": "Moderation",
+    "intro": "Approve each organisation once: from then on, everything it publishes is public straight away. Look at its facts, its page and its listings first.",
+    "pending": "Waiting for review",
+    "notApproved": "Not approved",
+    "approved": "Approved",
+    "none": "None.",
+    "created": "profile created on {date}",
+    "listings": "{count, plural, =0 {no published listings} one {# published listing} other {# published listings}}",
+    "statePending": "Waiting for a first review",
+    "askedAgain": "Asked for another review on {date}",
+    "stateApproved": "Approved",
+    "stateRejected": "Not approved on {date}",
+    "stateRevoked": "Approval revoked on {date}",
+    "reasonGiven": "Reason given: {reason}",
+    "approve": "Approve<hidden> {name}</hidden>",
+    "reject": "Reject<hidden> {name}</hidden>",
+    "revoke": "Revoke approval<hidden> for {name}</hidden>",
+    "reason": "Reason",
+    "reasonHint": "The organisation sees this. Say what's missing or wrong, and what would change the decision.",
+    "rejectAction": "Reject with this reason",
+    "revokeAction": "Revoke approval",
+    "revokeHint": "All its listings leave Homeward's search and pages at once.",
+    "history": "History ({count})",
+    "historyEntry": {
+      "approve": "{date}: approved by {actor}",
+      "reject": "{date}: rejected by {actor}",
+      "revoke": "{date}: approval revoked by {actor}",
+      "requestReview": "{date}: the organisation asked for another review"
+    },
+    "you": "you",
+    "done": {
+      "approved": "Approved. Its listings are public now.",
+      "rejected": "Not approved. The organisation can see your reason and ask again.",
+      "revoked": "Approval revoked. Its listings are no longer public."
+    },
+    "errors": {
+      "reasonRequired": "Give a reason: the organisation will see it.",
+      "reasonTooLong": "Keep the reason to {max, number} characters or fewer."
+    }
+  },
+  "ReviewEmail": {
+    "approved": {
+      "subject": "{name} is approved on Homeward",
+      "body": "Hello,\n\n{name} has been approved on Homeward. Everything you publish is now public, straight away.\n\nYour dashboard: {dashboard}\n\nHomeward"
+    },
+    "rejected": {
+      "subject": "{name} isn't approved on Homeward yet",
+      "body": "Hello,\n\nA moderator looked at {name} and couldn't approve it yet. Their reason:\n\n{reason}\n\nOnce you've dealt with this, ask for another review from your dashboard: {dashboard}\n\nHomeward"
+    },
+    "revoked": {
+      "subject": "Approval for {name} has been withdrawn on Homeward",
+      "body": "Hello,\n\nA moderator has withdrawn approval for {name}, so your listings are no longer public. Their reason:\n\n{reason}\n\nOnce you've dealt with this, ask for another review from your dashboard: {dashboard}\n\nHomeward"
+    }
   }
 }

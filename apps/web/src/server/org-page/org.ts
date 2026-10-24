@@ -9,6 +9,7 @@ import {
   type OrgFacts,
 } from '@homeward/db';
 import { pet } from '@homeward/lexicons';
+import { isAdmin } from '../admin/admins';
 import { getDb, getKeyring } from '../db';
 import type { OrganisationProfile } from '../onboarding/organisation-form';
 
@@ -34,12 +35,12 @@ export async function getPublicOrg(
   return { did: org.did, handle: org.handle, approved: org.approved, profile };
 }
 
-/** One organisation's listings. Its own staff also see those that aren't public yet. */
+/** One organisation's listings. Its own staff and moderators also see those not public yet. */
 export function orgListings(org: PublicOrg, viewerDid: string | undefined, search: ListingSearch) {
   return searchListings(getDb(), {
     ...search,
     orgDid: org.did,
-    includeUnmoderated: viewerDid === org.did,
+    includeUnmoderated: viewerDid === org.did || isAdmin(viewerDid),
   });
 }
 
