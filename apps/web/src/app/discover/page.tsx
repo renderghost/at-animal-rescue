@@ -3,11 +3,16 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { DiscoverFiltersForm } from '@/components/DiscoverFiltersForm';
 import { ListingCard } from '@/components/ListingCard';
+import { SaveSearch, type SaveStatus } from '@/components/SaveSearch';
 import { sortedCountries } from '@/i18n/countries';
 import { getPreferences } from '@/i18n/preferences';
 import { discoverQuery, parseDiscoverFilters } from '@/lib/discover-filters';
 import { formatDistance } from '@/lib/format';
+import { listSavedSearches, suggestedName } from '@/server/adopter/saved-searches';
+import { getCurrentUser } from '@/server/auth/session';
 import { discover } from '@/server/discover/search';
+
+const SAVE_STATUSES: readonly SaveStatus[] = ['saved', 'full', 'nameRequired', 'nameTooLong'];
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Discover');
@@ -20,10 +25,16 @@ export default async function DiscoverPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const filters = parseDiscoverFilters(await searchParams);
+  const params = await searchParams;
+  const filters = parseDiscoverFilters(params);
   const { language, country, distanceUnit, formatLocale: locale } = await getPreferences();
   const t = await getTranslations('Discover');
   const result = await discover(filters, { unit: distanceUnit, country, language });
+
+  // Adopters can save the search (#41); the result of saving comes back in the URL.
+  const user = result.viewer === 'adopter' ? await getCurrentUser() : undefined;
+  const saved = user && (await listSavedSearches(user.did, distanceUnit));
+  const status = (params.saved ? 'saved' : params.saveError) as SaveStatus | undefined;
 
   return (
     <>
@@ -48,6 +59,14 @@ export default async function DiscoverPage({
             unit={distanceUnit}
             placeChoices={result.placeChoices}
           />
+          {saved && (
+            <SaveSearch
+              query={discoverQuery(filters)}
+              suggestedName={await suggestedName(filters, { unit: distanceUnit, locale })}
+              count={saved.length}
+              status={status && SAVE_STATUSES.includes(status) ? status : undefined}
+            />
+          )}
         </aside>
         <section aria-labelledby="results" className="min-w-0">
           <h2 id="results" className="sr-only">
