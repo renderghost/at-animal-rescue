@@ -1,0 +1,6 @@
+# Cookie-free analytics (#46): copy to analytics.caddy on the server, set ANALYTICS_DOMAIN in
+# .env and start the stack with `--profile analytics`.
+{$ANALYTICS_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy umami:3000
+}

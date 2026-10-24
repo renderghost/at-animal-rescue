@@ -1,0 +1,14 @@
+# Build context for the production images (#47): source only, never local data or secrets.
+**/node_modules
+**/.next
+**/.cache
+**/*.tsbuildinfo
+**/next-env.d.ts
+.git
+.github
+.env
+.env.*
+!.env.example
+deploy/production.env
+coverage
+docs
