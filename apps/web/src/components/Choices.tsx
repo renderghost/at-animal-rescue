@@ -17,8 +17,9 @@ function Group({
   hint,
   error,
   className,
+  stacked,
   children,
-}: GroupProps & { children: ReactNode }) {
+}: GroupProps & { stacked?: boolean; children: ReactNode }) {
   const generated = useId();
   const id = anchor ?? generated;
   const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ');
@@ -42,14 +43,16 @@ function Group({
           {error}
         </p>
       )}
-      <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{children}</div>
+      <div className={cn('mt-2', stacked ? 'grid gap-3' : 'flex flex-wrap gap-x-6 gap-y-2')}>
+        {children}
+      </div>
     </fieldset>
   );
 }
 
 const control = 'size-5 shrink-0 accent-accent';
 
-/** One answer from a set, as radio buttons. */
+/** One answer from a set, as radio buttons; options with hints are stacked, one per line. */
 export function RadioGroup({
   name,
   options,
@@ -57,22 +60,32 @@ export function RadioGroup({
   ...group
 }: GroupProps & {
   name: string;
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; hint?: string }>;
   defaultValue?: string;
 }) {
+  const id = useId();
+  const stacked = options.some((option) => option.hint);
   return (
-    <Group {...group}>
-      {options.map(({ value, label }) => (
-        <label key={value} className="flex items-center gap-2">
-          <input
-            type="radio"
-            name={name}
-            value={value}
-            defaultChecked={defaultValue === value}
-            className={control}
-          />
-          {label}
-        </label>
+    <Group {...group} stacked={stacked}>
+      {options.map(({ value, label, hint }) => (
+        <div key={value}>
+          <label className={cn('flex items-center gap-2', stacked && 'font-medium')}>
+            <input
+              type="radio"
+              name={name}
+              value={value}
+              defaultChecked={defaultValue === value}
+              className={control}
+              aria-describedby={hint ? `${id}-${value}-hint` : undefined}
+            />
+            {label}
+          </label>
+          {hint && (
+            <p id={`${id}-${value}-hint`} className="pl-7 text-sm text-muted">
+              {hint}
+            </p>
+          )}
+        </div>
       ))}
     </Group>
   );

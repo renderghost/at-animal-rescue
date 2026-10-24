@@ -286,3 +286,77 @@ export const orgReviewLog = pgTable(
   },
   (t) => [index('org_review_log_did').on(t.did, t.at)],
 );
+
+/**
+ * Reports of listings under the DSA (#44): anyone can report; a moderator hides the listing
+ * or takes no action. The reporter's contact details are erased six months after the
+ * decision; the report itself stays, for the record.
+ */
+export const listingReports = pgTable(
+  'listing_reports',
+  {
+    id: text().primaryKey(),
+    /** Shown to the reporter, e.g. R-7KQ2MX. */
+    reference: text().notNull().unique(),
+    listingUri: text('listing_uri').notNull(),
+    orgDid: text('org_did').notNull(),
+    reason: text().notNull(),
+    explanation: text().notNull(),
+    reporterName: text('reporter_name'),
+    reporterEmail: text('reporter_email'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /** open, actioned (the listing was hidden) or dismissed (no action). */
+    state: text().notNull().default('open'),
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    /** Why, as told to the reporter. */
+    decisionNote: text('decision_note'),
+    contactErasedAt: timestamp('contact_erased_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('listing_reports_state').on(t.state, t.createdAt),
+    index('listing_reports_listing').on(t.listingUri),
+  ],
+);
+
+/**
+ * Listings hidden after a report, with the statement of reasons (DSA Art. 17) and the
+ * organisation's request for a second look (Art. 20). Kept apart from the rebuildable index;
+ * `index_listings.moderation` mirrors it.
+ */
+export const listingHides = pgTable(
+  'listing_hides',
+  {
+    listingUri: text('listing_uri').primaryKey(),
+    orgDid: text('org_did').notNull(),
+    /** The DSA transparency database category, e.g. STATEMENT_CATEGORY_ANIMAL_WELFARE. */
+    category: text().notNull(),
+    /** illegal (the law) or terms (Homeward's rules). */
+    ground: text().notNull(),
+    statement: text().notNull(),
+    decidedBy: text('decided_by').notNull(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }).notNull(),
+    appealText: text('appeal_text'),
+    appealedAt: timestamp('appealed_at', { withTimezone: true }),
+    appealDecidedAt: timestamp('appeal_decided_at', { withTimezone: true }),
+    appealNote: text('appeal_note'),
+  },
+  (t) => [index('listing_hides_org').on(t.orgDid)],
+);
+
+/** Every step in a listing's moderation, kept as the audit log. */
+export const listingModerationLog = pgTable(
+  'listing_moderation_log',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    listingUri: text('listing_uri').notNull(),
+    /** reported, hidden, dismissed, appealed, reinstated or upheld. */
+    action: text().notNull(),
+    reportId: text('report_id'),
+    /** The moderator or organisation; empty for a report, which can be anonymous. */
+    actorDid: text('actor_did'),
+    note: text(),
+    at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('listing_moderation_log_listing').on(t.listingUri, t.at)],
+);

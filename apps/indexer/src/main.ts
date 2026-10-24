@@ -1,5 +1,12 @@
 import { getPds, IdResolver } from '@atproto/identity';
-import { createDb, IndexStore, OrgFactsStore, schema, ServiceStateStore } from '@homeward/db';
+import {
+  createDb,
+  IndexStore,
+  ListingReportStore,
+  OrgFactsStore,
+  schema,
+  ServiceStateStore,
+} from '@homeward/db';
 import { INDEXED_COLLECTIONS } from './events';
 import {
   checkDomain,
@@ -82,6 +89,16 @@ const client = new JetstreamClient({
   log,
 });
 
+// Reporters' names and emails go six months after the decision (#44); checked daily.
+const reports = new ListingReportStore(db);
+const eraseContacts = () =>
+  reports.eraseExpiredContacts().then(
+    (count) => count > 0 && log.info("erased reporters' contact details", { count }),
+    (err) => log.warn("erasing reporters' contact details failed", { error: String(err) }),
+  );
+const housekeeping = setInterval(eraseContacts, 24 * 60 * 60 * 1000);
+void eraseContacts();
+
 const health = startHealthServer(Number(process.env.PORT ?? 8081), () => client.status);
 await client.start();
 facts.start();
@@ -92,6 +109,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     log.info('shutting down', { signal });
     await client.stop();
     await facts.stop();
+    clearInterval(housekeeping);
     health.close();
     await db.close();
     process.exit(0);

@@ -1045,7 +1045,7 @@
     "askAgain": "Ask for another review",
     "askedAgain": "You asked for another review on {date}. A moderator will look again soon.",
     "reviewRequested": "Your request was sent.",
-    "hiddenCount": "{count, plural, one {# listing is hidden after a report.} other {# listings are hidden after a report.}}",
+    "hiddenCount": "{count, plural, one {# listing is hidden after a report.} other {# listings are hidden after a report.}} <link>See why</link>",
     "pdsUnavailable": "We couldn't reach your account just now, so only your drafts are shown.",
     "listings": "Listings",
     "noListings": "No listings yet.",
@@ -1098,7 +1098,27 @@
     "noUnlisted": "Every animal is in an open listing.",
     "animalDraft": "Draft (private)",
     "animalPublic": "Public",
-    "listAnimal": "Create a listing for {name}"
+    "listAnimal": "Create a listing for {name}",
+    "hiddenHeading": "Hidden after a report",
+    "hiddenIntro": "A moderator hid these listings after someone reported them. They're not in search and their pages aren't public, but nothing has been deleted: they're still in your account.",
+    "hiddenOn": "Hidden on {date}",
+    "hiddenGround": {
+      "illegal": "We believe it breaks the law.",
+      "terms": "It breaks <link>Homeward's rules for listings</link>."
+    },
+    "statementLabel": "The moderator's reasons",
+    "appeal": "Ask for a second look",
+    "appealLabel": "Your explanation",
+    "appealHint": "Tell us what we've got wrong, or what you've changed. A moderator will look again and reply here and by email. You can ask once for each decision.",
+    "appealAction": "Ask for a second look",
+    "appealSent": "Sent. A moderator will look again.",
+    "appealedOn": "You asked for a second look on {date}. A moderator will reply here and by email.",
+    "upheldOn": "A moderator looked again on {date} and kept it hidden. Their reasons: {note}",
+    "redress": "If you still disagree, you can take the decision to a certified out-of-court dispute settlement body or to the courts.",
+    "appealErrors": {
+      "required": "Tell us why it should be looked at again.",
+      "tooLong": "Keep it to {max, number} characters or fewer."
+    }
   },
   "ListingPage": {
     "backTo": "More animals from {name}",
@@ -1168,7 +1188,9 @@
       "notListed": "It isn't listed: it's withdrawn.",
       "awaitingApproval": "Your organisation is awaiting review, so your listings aren't public yet.",
       "hiddenAfterReport": "It's hidden after a report."
-    }
+    },
+    "report": "Report this listing",
+    "whyHidden": "Why it's hidden, and how to ask for a second look"
   },
   "Enquire": {
     "metaTitle": "Enquire",
@@ -1400,7 +1422,7 @@
   },
   "Admin": {
     "title": "Moderation",
-    "intro": "Approve each organisation once: from then on, everything it publishes is public straight away. Look at its facts, its page and its listings first.",
+    "intro": "Reports about listings come first, then second looks that organisations asked for, then organisations to approve. Approve each organisation once: from then on, everything it publishes is public straight away. Look at its facts, its page and its listings first.",
     "pending": "Waiting for review",
     "notApproved": "Not approved",
     "approved": "Approved",
@@ -1432,11 +1454,61 @@
     "done": {
       "approved": "Approved. Its listings are public now.",
       "rejected": "Not approved. The organisation can see your reason and ask again.",
-      "revoked": "Approval revoked. Its listings are no longer public."
+      "revoked": "Approval revoked. Its listings are no longer public.",
+      "hidden": "Hidden. The organisation has the statement, and reporters who left an email address have been told.",
+      "dismissed": "Closed with no action. The reporter has been told, if they left an email address.",
+      "reinstated": "Reinstated. The listing is public again.",
+      "upheld": "Kept hidden. The organisation has your reason."
     },
     "errors": {
       "reasonRequired": "Give a reason: the organisation will see it.",
-      "reasonTooLong": "Keep the reason to {max, number} characters or fewer."
+      "reasonTooLong": "Keep the reason to {max, number} characters or fewer.",
+      "categoryRequired": "Choose a category.",
+      "groundRequired": "Choose the grounds.",
+      "noteRequired": "Write a reason: it will be sent on.",
+      "noteTooLong": "Keep it to {max, number} characters or fewer."
+    },
+    "reports": "Reports",
+    "secondLooks": "Second looks",
+    "organisations": "Organisations",
+    "reportCount": "{count, plural, one {# open report} other {# open reports}}",
+    "byOrg": "Listed by {name}",
+    "listingGone": "This listing has been deleted, so there's nothing left to hide. Close its reports with no action.",
+    "reportMeta": "Reported on {date} · reference {reference}",
+    "reporterName": "Name given: {name}",
+    "contactEmail": "They left an email address, so they'll be told the decision.",
+    "contactNone": "No email address, so they won't hear the decision.",
+    "dismiss": "Close with no action<hidden>: report {reference}</hidden>",
+    "dismissNote": "Reason",
+    "dismissHint": "The reporter sees this if they left an email address. Say why the listing can stay.",
+    "dismissAction": "Close with this reason",
+    "hide": "Hide this listing<hidden>: {title}</hidden>",
+    "hideHint": "It leaves search and its page at once, and every open report about it is closed. The organisation gets this statement and can ask for a second look.",
+    "category": "Category",
+    "categoryHint": "As filed in the EU's transparency database.",
+    "categoryChoose": "Choose a category",
+    "ground": "Grounds",
+    "statement": "Statement of reasons",
+    "statementHint": "The organisation and the reporters see this. Say what you saw and why it breaks the law or Homeward's rules. Never name the reporter.",
+    "hideAction": "Hide with this statement",
+    "hiddenOn": "Hidden on {date} · {category} · {ground}",
+    "statementGiven": "Statement: {statement}",
+    "appealedOn": "The organisation asked for a second look on {date}:",
+    "reinstate": "Make it public again<hidden>: {title}</hidden>",
+    "reinstateNote": "Note (optional)",
+    "reinstateHint": "The organisation sees this.",
+    "reinstateAction": "Reinstate the listing",
+    "uphold": "Keep it hidden<hidden>: {title}</hidden>",
+    "upholdNote": "Reason",
+    "upholdHint": "The organisation sees this. Say why the decision stands.",
+    "upholdAction": "Keep hidden with this reason",
+    "listingHistoryEntry": {
+      "reported": "{date}: reported",
+      "hidden": "{date}: hidden by {actor}",
+      "dismissed": "{date}: a report closed with no action by {actor}",
+      "appealed": "{date}: the organisation asked for a second look",
+      "reinstated": "{date}: reinstated by {actor}",
+      "upheld": "{date}: kept hidden after a second look by {actor}"
     }
   },
   "ReviewEmail": {
@@ -1498,6 +1570,121 @@
         "restricted": "Licence or conditions",
         "noImport": "Can't be brought in"
       }
+    }
+  },
+  "Report": {
+    "metaTitle": "Report a listing",
+    "back": "Back to {title}",
+    "title": "Report {title}",
+    "intro": "Tell us if this listing breaks the law or <link>Homeward's rules for listings</link>. A moderator reads every report. {name} isn't told who reported it.",
+    "reason": "What's wrong?",
+    "reasons": {
+      "welfare": {
+        "label": "Animal welfare concern",
+        "hint": "An animal looks neglected, ill or too young to rehome, or is kept in poor conditions."
+      },
+      "illegalSale": {
+        "label": "Illegal sale or trade",
+        "hint": "Breeding or selling for profit, a banned breed, or an animal brought into the country illegally."
+      },
+      "scam": {
+        "label": "Scam or fraud",
+        "hint": "Asking for money for an animal that may not exist, or pretending to be someone else."
+      },
+      "personalData": {
+        "label": "Personal data shown",
+        "hint": "Someone's address, phone number or other personal details are on the page."
+      },
+      "otherIllegal": {
+        "label": "Other illegal content",
+        "hint": "Something else you believe breaks the law."
+      },
+      "rules": {
+        "label": "Breaks Homeward's rules",
+        "hint": "It isn't a rehoming listing, or it's misleading, offensive or spam."
+      }
+    },
+    "explanation": "What did you see?",
+    "explanationHint": "Explain why you think the listing is illegal or breaks the rules, and where on the page it is. Up to {max, number} characters.",
+    "aboutYou": "About you (optional)",
+    "aboutYouHint": "Leave your email address to get a receipt and hear what we decide. Without it, we still look at your report but can't tell you the outcome. We delete your name and email address six months after the decision.",
+    "name": "Your name",
+    "email": "Your email address",
+    "goodFaith": "I believe the information in this report is accurate and complete.",
+    "submit": "Send report",
+    "doneHeading": "Thank you, we've received your report",
+    "doneReference": "Your reference is {reference}.",
+    "doneEmailed": "We've emailed you a receipt, and we'll email you again when a moderator has decided.",
+    "doneNoEmail": "You didn't leave an email address, so we can't tell you the outcome.",
+    "doneBack": "Back to the listing",
+    "errors": {
+      "reason": {
+        "required": "Choose what's wrong."
+      },
+      "explanation": {
+        "required": "Tell us what you saw.",
+        "tooLong": "Keep it to {max, number} characters or fewer."
+      },
+      "name": {
+        "tooLong": "Keep your name to {max, number} characters or fewer."
+      },
+      "email": {
+        "invalid": "Enter an email address like name@example.org, or leave it empty."
+      },
+      "goodFaith": {
+        "required": "Tick to confirm the report is accurate and complete."
+      },
+      "unavailable": "This listing can't be reported any more. It may have been deleted or already hidden."
+    },
+    "grounds": {
+      "illegal": "Against the law",
+      "terms": "Against Homeward's rules"
+    },
+    "categories": {
+      "ANIMAL_WELFARE": "Animal welfare",
+      "DATA_PROTECTION_AND_PRIVACY_VIOLATIONS": "Data protection and privacy",
+      "ILLEGAL_OR_HARMFUL_SPEECH": "Illegal or harmful speech",
+      "INTELLECTUAL_PROPERTY_INFRINGEMENTS": "Intellectual property",
+      "NEGATIVE_EFFECTS_ON_CIVIC_DISCOURSE_OR_ELECTIONS": "Civic discourse or elections",
+      "NON_CONSENSUAL_BEHAVIOUR": "Non-consensual behaviour",
+      "PORNOGRAPHY_OR_SEXUALIZED_CONTENT": "Pornography or sexualised content",
+      "PROTECTION_OF_MINORS": "Protection of minors",
+      "RISK_FOR_PUBLIC_SECURITY": "Risk to public security",
+      "SCAMS_AND_FRAUD": "Scams and fraud",
+      "SELF_HARM": "Self-harm",
+      "SCOPE_OF_PLATFORM_SERVICE": "Outside what Homeward is for",
+      "UNSAFE_AND_ILLEGAL_PRODUCTS": "Unsafe or illegal products",
+      "VIOLENCE": "Violence"
+    }
+  },
+  "ReportEmail": {
+    "receipt": {
+      "subject": "We've received your report {reference}",
+      "body": "Hello,\n\nThank you for reporting this listing on Homeward:\n\n{title}\n{url}\n\nWhat's wrong: {reason}\nYour reference: {reference}\n\nA moderator will look at it, and we'll email you what we decide. We delete your name and email address six months after the decision.\n\nHomeward"
+    },
+    "hidden": {
+      "subject": "Your report {reference}: we've hidden the listing",
+      "body": "Hello,\n\nA moderator looked at your report {reference} about \"{title}\" and has hidden the listing. Their reasons:\n\n{reason}\n\nThe organisation can ask us to look again. Thank you for telling us.\n\nHomeward"
+    },
+    "dismissed": {
+      "subject": "Your report {reference}: no action taken",
+      "body": "Hello,\n\nA moderator looked at your report {reference} about \"{title}\" and decided to leave the listing up. Their reasons:\n\n{reason}\n\nIf you have more information, you can report the listing again. You can also take the decision to a certified out-of-court dispute settlement body or to the courts.\n\nHomeward"
+    },
+    "statement": {
+      "subject": "\"{title}\" has been hidden on Homeward",
+      "body": "Hello,\n\nAfter a report, a moderator has hidden {name}'s listing \"{title}\". It no longer appears in Homeward's search and its page isn't public. Nothing has been deleted: it's still in your account.\n\n{ground}\n\nThe moderator's reasons:\n\n{statement}\n\nA person made this decision, after someone reported the listing. We don't share who reported it.\n\nIf you think we've got it wrong, or you've fixed the problem, ask for a second look from your dashboard: {dashboard}\n\nYou can also take the decision to a certified out-of-court dispute settlement body or to the courts.\n\nHomeward",
+      "ground": {
+        "illegal": "We believe the listing breaks the law.",
+        "terms": "The listing breaks Homeward's rules for listings: {guidelines}"
+      }
+    },
+    "reinstated": {
+      "subject": "\"{title}\" is public again on Homeward",
+      "body": "Hello,\n\nA moderator took a second look at {name}'s listing \"{title}\" and has made it public again.{hasNote, select, yes {\n\nTheir note:\n\n{note}} other {}}\n\nYour dashboard: {dashboard}\n\nHomeward"
+    },
+    "upheld": {
+      "subject": "\"{title}\" stays hidden on Homeward",
+      "body": "Hello,\n\nA moderator took a second look at {name}'s listing \"{title}\" and has kept it hidden. Their reasons:\n\n{note}\n\nIf you still disagree, you can take the decision to a certified out-of-court dispute settlement body or to the courts.\n\nYour dashboard: {dashboard}\n\nHomeward"
     }
   }
 }
