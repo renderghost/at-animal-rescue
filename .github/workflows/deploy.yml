@@ -96,7 +96,8 @@ jobs:
       - name: Copy the stack definition
         run: scp deploy/compose.production.yml deploy/Caddyfile "$TARGET:/opt/homeward/"
       - name: Pull, migrate and restart
-        # Migrations run first; if they fail, the running version stays up.
+        # The settings check and migrations run first; if either fails, the running version
+        # stays up.
         run: |
           ssh "$TARGET" "cd /opt/homeward && export IMAGE_TAG=sha-$SHA &&
             docker compose -f compose.production.yml pull --quiet &&

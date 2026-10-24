@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "services:up": "docker compose up -d --wait",
+    "services:up": "docker compose up -d --wait postgres mailpit",
     "services:down": "docker compose down",
     "db:migrate": "pnpm --filter @homeward/db db:migrate",
     "backfill": "pnpm --filter @homeward/indexer backfill"

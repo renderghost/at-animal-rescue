@@ -4,11 +4,12 @@ import { SESSION_MAX_AGE_SECONDS, SessionStore } from '@homeward/db';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 import { getDb, getKeyring } from '../db';
+import { secureCookies } from '../site';
 import { safeFetch } from './fetch';
 
-const production = process.env.NODE_ENV === 'production';
+const secure = secureCookies();
 // __Host- binds the cookie to this exact origin over HTTPS (no Domain, Path=/).
-const COOKIE = production ? '__Host-hw_session' : 'hw_session';
+const COOKIE = secure ? '__Host-hw_session' : 'hw_session';
 
 function store() {
   return new SessionStore<SessionData>(getDb(), getKeyring());
@@ -24,7 +25,7 @@ export async function startSession(session: SessionData): Promise<void> {
   const token = await store().create({ did: session.did, handle: session.handle, data: session });
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
-    secure: production,
+    secure,
     sameSite: 'lax',
     path: '/',
     maxAge: SESSION_MAX_AGE_SECONDS,

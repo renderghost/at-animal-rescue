@@ -4,6 +4,7 @@
 #
 #   default command   the indexer
 #   migrate           docker run ... homeward-indexer migrate
+#   check             docker run --env-file .env ... homeward-indexer check   (production .env)
 #   backfill          docker run ... homeward-indexer backfill <handle-or-did>... | --known
 
 FROM node:22-bookworm-slim

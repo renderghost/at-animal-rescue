@@ -7,6 +7,8 @@ Homeward runs on one server at Scaleway in Paris (#47), watched by a small secon
 - error reports, in Bugsink on our own server
 - uptime checks, from Uptime Kuma on the second server
 
+To run Homeward on your own computer instead, see [LOCAL.md](LOCAL.md).
+
 ## What runs
 
 `deploy/compose.production.yml` runs these, from `/opt/homeward` on the server:
@@ -16,7 +18,8 @@ Homeward runs on one server at Scaleway in Paris (#47), watched by a small secon
 | `caddy`    | HTTPS with automatic Let's Encrypt certificates, in front of the web app (`deploy/Caddyfile`). |
 | `web`      | The Next.js app (`ghcr.io/renderghost/homeward-web`). Resized photos are cached in a volume.   |
 | `indexer`  | Follows Jetstream into the index (`ghcr.io/renderghost/homeward-indexer`).                     |
-| `migrate`  | Runs database migrations once per deploy, before `web` and `indexer` start.                    |
+| `check`    | Checks `.env` on every deploy. A mistake stops the deploy here, before anything changes.       |
+| `migrate`  | Runs database migrations once per deploy, after `check` and before `web` and `indexer` start.  |
 | `postgres` | Postgres 17 with PostGIS. Not reachable from outside the server.                               |
 | `backup`   | Nightly encrypted dumps to Scaleway Object Storage (`ghcr.io/renderghost/homeward-backup`).    |
 | `bugsink`  | Error tracking (#48) at its own address. The web app and indexer report errors to it.          |
@@ -80,30 +83,39 @@ Add a second person's public key too, so losing one key doesn't lose the backups
 
 ### 5. Settings
 
-Copy `deploy/production.env.example` to `/opt/homeward/.env` and fill it in. Make it readable by `deploy` only, and never commit it:
+Copy `deploy/compose.production.yml` and `deploy/Caddyfile` to `/opt/homeward`, and `deploy/production.env.example` to `/opt/homeward/.env`. Make `.env` readable by `deploy` only, and never commit it:
 
 ```sh
 chmod 600 /opt/homeward/.env
 ```
 
-It holds:
+Fill in every setting marked `[required]`. The template says what each one is, and gives the command that makes each secret:
 
-- `DOMAIN`, `SITE_URL` and `ACME_EMAIL`.
-- `POSTGRES_PASSWORD`: generate it with `openssl rand -base64 32`.
-- `PRIVATE_STORE_KEYS` and `PRIVATE_STORE_ACTIVE_KEY`: generate with `openssl rand -base64 32`. **Keep a copy offline with the backup key.** Without these, private data can't be read, even from a backup.
-- `ADMIN_DIDS`.
+- `DOMAIN`, `SITE_URL` (`https://` and the domain) and `ACME_EMAIL`.
+- `POSTGRES_PASSWORD`: `openssl rand -hex 32`. Letters and digits only, because it goes into the database address.
+- `PRIVATE_STORE_KEYS`: `echo "k1:$(openssl rand -base64 32)"`, with `PRIVATE_STORE_ACTIVE_KEY=k1`. **Keep a copy offline with the backup key.** Without it, private data can't be read, even from a backup.
+- `ADMIN_DIDS`: the moderators' DIDs. To find the DID of an account, open `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=<handle>`.
 - `TEM_PROJECT_ID`, `TEM_SECRET_KEY` and `EMAIL_FROM` from step 1.7. `EMAIL_FROM` must be on the verified domain.
 - `ERRORS_DOMAIN` and `BUGSINK_SECRET_KEY` (`openssl rand -base64 50`). `SENTRY_DSN_WEB` and `SENTRY_DSN_INDEXER` stay empty until step 6.
-- `BACKUP_AGE_RECIPIENTS`, and the `RCLONE_CONFIG_BACKUP_*` keys from step 1.5.
+- `BACKUP_AGE_RECIPIENTS` from step 4, separated by spaces, and the `RCLONE_CONFIG_BACKUP_*` keys from step 1.5.
+
+Then check your work. It lists anything missing or wrong, in plain words, and changes nothing:
+
+```sh
+cd /opt/homeward
+docker compose -f compose.production.yml run --rm check
+```
+
+Fix what it reports and run it again, until it says `Settings checked.` Warnings don't stop anything, but are worth fixing.
 
 ### 6. First start
 
-Copy `deploy/compose.production.yml` and `deploy/Caddyfile` to `/opt/homeward`, then start the stack:
+Start the stack:
 
 ```sh
 cd /opt/homeward
 docker compose -f compose.production.yml up -d
-docker compose -f compose.production.yml ps        # everything running, migrate exited 0
+docker compose -f compose.production.yml ps        # everything running; check and migrate exited 0
 docker compose -f compose.production.yml run --rm backup once   # check a backup reaches the bucket
 ```
 
@@ -140,11 +152,12 @@ From then on, every merge to `main` that passes CI does the following:
 1. builds the images and pushes them to GHCR
 2. copies the compose file and Caddyfile to the server
 3. pulls the new images
-4. runs migrations
-5. restarts the app
-6. checks `/api/health` says the site, database and indexer are up
+4. checks `.env`
+5. runs migrations
+6. restarts the app
+7. checks `/api/health` says the site, database and indexer are up
 
-If migrations fail, the running version stays up and the workflow fails.
+If the check or the migrations fail, the running version stays up and the workflow fails. The workflow's log says why.
 
 ### 8. Analytics (optional, #46)
 
@@ -179,7 +192,7 @@ Open `https://<monitor domain>/` and create the admin account. Then add:
 
 - **Deploys** happen on merge. Watch them under Actions → "Images and deploy".
 - **Rolling back:** on the server, run `IMAGE_TAG=sha-<earlier commit> docker compose -f compose.production.yml up -d`. Migrations only ever move forwards, and lexicons and schema changes are backwards compatible, so an older app runs on a newer database. Check the migration list first if the change was large.
-- **Changing settings:** edit `/opt/homeward/.env`, then run `docker compose -f compose.production.yml up -d`.
+- **Changing settings:** edit `/opt/homeward/.env`, run `docker compose -f compose.production.yml run --rm check`, then `docker compose -f compose.production.yml up -d`.
 - **Logs:** `docker compose -f compose.production.yml logs -f web indexer`.
 - **Errors:** Bugsink emails each new issue. The list is at `https://<errors domain>/`.
 - **Health:** `https://<domain>/api/health` says whether the database and the indexer are up. Uptime Kuma checks it every minute.
@@ -189,6 +202,22 @@ Open `https://<monitor domain>/` and create the admin account. Then add:
   docker compose -f compose.production.yml run --rm indexer backfill --known
   docker compose -f compose.production.yml run --rm indexer backfill hillfarm.example.org
   ```
+
+## When something goes wrong
+
+Start with `docker compose -f compose.production.yml ps`, which shows what's running, and the logs of whatever isn't. In the commands below, `dc` is short for `docker compose -f compose.production.yml`. To make it a real shortcut, add `alias dc='docker compose -f /opt/homeward/compose.production.yml'` to `~/.bashrc`.
+
+| What you see                                                      | What to do                                                                                                                                                     |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A deploy fails with `service "check" didn't complete`             | A setting in `.env` is missing or wrong. Run `dc run --rm check`, fix what it lists, and re-run the workflow. The site kept running the previous version.      |
+| `required variable ... is missing a value`                        | That setting is empty in `.env`. Fill it in.                                                                                                                   |
+| A deploy fails with `service "migrate" didn't complete`           | Run `dc logs migrate`. The site kept running the previous version. Raise an issue with the log if the cause isn't clear.                                       |
+| The site doesn't load, or the browser warns about the certificate | Check the domain's DNS points at the server, and that ports 80 and 443 are open in the security group. Then `dc logs caddy`: it says why a certificate failed. |
+| `502 Bad Gateway`                                                 | The web app isn't up. Run `dc ps` and `dc logs web`.                                                                                                           |
+| `/api/health` says `"indexer":"down"`                             | Run `dc logs indexer`. It reconnects to Jetstream by itself; if it was down for long, run a backfill (see "Everyday").                                         |
+| Emails don't arrive                                               | Check the domain is verified in Transactional Email and `EMAIL_FROM` is on it. `dc logs web` shows sending errors.                                             |
+| The backup heartbeat alert fires                                  | Run `dc run --rm backup once` and read its output: usually the bucket keys, or the age recipients.                                                             |
+| The disk is full                                                  | `docker system df` shows what's using it. `docker image prune -a` removes old images that no container uses.                                                   |
 
 ## Backups
 
@@ -228,7 +257,7 @@ Both operators keep a copy of each in a shared password-manager vault. Secrets n
 
 | Secret                                        | Lives in                     | Offline copy               | To rotate                                                                                                                                                                                                                                        |
 | --------------------------------------------- | ---------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `POSTGRES_PASSWORD`                           | `.env`                       | Vault                      | `docker compose exec postgres psql -U homeward -c "ALTER USER homeward PASSWORD '…'"`, then update `.env` and `up -d`.                                                                                                                           |
+| `POSTGRES_PASSWORD`                           | `.env`                       | Vault                      | Make one with `openssl rand -hex 32`. `docker compose exec postgres psql -U homeward -c "ALTER USER homeward PASSWORD '…'"`, then update `.env` and `up -d`.                                                                                     |
 | `PRIVATE_STORE_KEYS`                          | `.env`                       | Vault, with the backup key | Add a new `id:key`, make it `PRIVATE_STORE_ACTIVE_KEY`, `up -d`, then `docker compose run --rm migrate rotate-keys`. When it reports no failures, wait 30 days (the longest session) and remove the old key. Old backups still need the old key. |
 | `TEM_SECRET_KEY`                              | `.env`                       | Vault                      | Create a new IAM key with the same rights, update `.env`, `up -d`, delete the old key.                                                                                                                                                           |
 | `RCLONE_CONFIG_BACKUP_*`                      | `.env`                       | Vault                      | As for TEM, with the bucket-only key.                                                                                                                                                                                                            |
