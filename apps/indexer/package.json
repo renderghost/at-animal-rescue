@@ -14,7 +14,8 @@
     "@atproto/lex": "^0.4.2",
     "@atproto/syntax": "^0.7.7",
     "@homeward/db": "workspace:*",
-    "@homeward/lexicons": "workspace:*"
+    "@homeward/lexicons": "workspace:*",
+    "@sentry/node": "^11.9.0"
   },
   "devDependencies": {
     "@types/ws": "^8.18.2",

@@ -10,13 +10,15 @@
     "typecheck": "tsc -p .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=../../.env src/migrate.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:rotate-keys": "tsx --env-file-if-exists=../../.env src/rotate-keys.ts"
   },
   "dependencies": {
     "@atproto/common-web": "^0.5.15",
     "@atproto/lex": "^0.4.2",
     "@atproto/syntax": "^0.7.7",
     "@homeward/lexicons": "workspace:*",
+    "@opentelemetry/api": "^1.10.0",
     "drizzle-orm": "^0.45.4",
     "postgres": "^3.4.9"
   },

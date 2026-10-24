@@ -1,0 +1,9 @@
+# Caddy for the monitoring server (#48): HTTPS in front of Uptime Kuma.
+{
+	email {$ACME_EMAIL}
+}
+
+{$MONITOR_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy uptime-kuma:3001
+}

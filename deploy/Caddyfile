@@ -16,5 +16,11 @@
 	reverse_proxy web:3000
 }
 
+# Error tracking (#48): Bugsink, for the team only (it has its own sign-in).
+{$ERRORS_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy bugsink:8000
+}
+
 # Optional sites, such as analytics (sites/analytics.caddy.example).
 import sites/*.caddy

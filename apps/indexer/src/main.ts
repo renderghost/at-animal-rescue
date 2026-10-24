@@ -7,6 +7,7 @@ import {
   schema,
   ServiceStateStore,
 } from '@homeward/db';
+import { flushErrors, initErrorReporting, reportError } from './errors';
 import { INDEXED_COLLECTIONS } from './events';
 import {
   checkDomain,
@@ -22,6 +23,8 @@ import { jsonLogger as log } from './log';
 import { processEvent } from './processor';
 
 const CURSOR_KEY = 'indexer.jetstream.cursor';
+
+initErrorReporting(process.env.SENTRY_DSN);
 
 const db = createDb();
 const store = new IndexStore(db);
@@ -85,6 +88,10 @@ const client = new JetstreamClient({
       resolveHandle,
       onOrgChanged: (did) => facts.request(did),
       log,
+    }).catch((err) => {
+      // Replayed after a reconnect, but worth knowing about (most likely the database).
+      reportError(err, { kind: event.kind, did: event.did, time_us: event.time_us });
+      throw err;
     }),
   log,
 });
@@ -111,6 +118,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     await facts.stop();
     clearInterval(housekeeping);
     health.close();
+    await flushErrors();
     await db.close();
     process.exit(0);
   });
