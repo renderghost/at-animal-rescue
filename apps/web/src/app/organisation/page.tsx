@@ -1,18 +1,22 @@
-import { findOrg, hiddenListingKeys } from '@homeward/db';
+import { findOrg, type ListingHide } from '@homeward/db';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { requestReviewAction } from '@/app/actions/admin';
+import { appealHideAction } from '@/app/actions/reports';
 import { changeStatusAction, deleteListingAction } from '@/app/actions/listings';
 import { Badge } from '@/components/Badge';
 import { Button, ButtonLink } from '@/components/Button';
+import { TextArea } from '@/components/Field';
 import { getPreferences } from '@/i18n/preferences';
+import { MAX_APPEAL } from '@/lib/reports';
 import { orgReviews } from '@/server/admin/admin';
 import { requireOrganisation } from '@/server/animals/current-org';
 import { getDb } from '@/server/db';
 import { isoDate } from '@/server/listings/lifecycle';
 import { listListings, type ListingSummary } from '@/server/listings/listings';
+import { listingReports } from '@/server/reports/reports';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Dashboard');
@@ -26,6 +30,8 @@ type SearchParams = {
   deleted?: string;
   removed?: string;
   reviewRequested?: string;
+  appealed?: string;
+  appealError?: string;
 };
 
 const GROUPS = ['available', 'reserved', 'draft', 'adopted', 'withdrawn'] as const;
@@ -49,12 +55,14 @@ export default async function DashboardPage({
   searchParams: Promise<SearchParams>;
 }) {
   const { did, client } = await requireOrganisation();
-  const [{ listings, unlisted, pdsUnavailable }, org, hidden, review] = await Promise.all([
+  const [{ listings, unlisted, pdsUnavailable }, org, hides, review] = await Promise.all([
     listListings(did, client),
     findOrg(getDb(), { did }),
-    hiddenListingKeys(getDb(), did),
+    listingReports().hidesOf(did),
     orgReviews().get(did),
   ]);
+  const rkeyOf = (hide: ListingHide) => hide.listingUri.split('/').pop()!;
+  const hidden = hides.map(rkeyOf);
   const t = await getTranslations('Dashboard');
   const { formatLocale: locale } = await getPreferences();
   const params = await searchParams;
@@ -240,10 +248,95 @@ export default async function DashboardPage({
         )}
         {hidden.length > 0 && (
           <p className="rounded-md border border-conflict-line bg-conflict-soft p-4 text-conflict">
-            {t('hiddenCount', { count: hidden.length })}
+            {t.rich('hiddenCount', {
+              count: hidden.length,
+              link: (chunks) => <a href="#hidden">{chunks}</a>,
+            })}
           </p>
         )}
       </section>
+
+      {hides.length > 0 && (
+        // The statement of reasons and the way to contest it (#44, DSA Arts. 17 and 20).
+        <section aria-labelledby="hidden" className="mb-10">
+          <h2 id="hidden" className="mb-3 text-xl font-bold">
+            {t('hiddenHeading')}
+          </h2>
+          <p className="mb-4 max-w-prose">{t('hiddenIntro')}</p>
+          <ul className="grid gap-4">
+            {hides.map((hide) => {
+              const rkey = rkeyOf(hide);
+              const listing = listings.find((item) => item.rkey === rkey);
+              const title = listing ? titleOf(listing) : rkey;
+              const appealError =
+                params.listing === rkey &&
+                (params.appealError === 'required' || params.appealError === 'tooLong')
+                  ? t(`appealErrors.${params.appealError}`, { max: MAX_APPEAL })
+                  : undefined;
+              return (
+                <li
+                  key={hide.listingUri}
+                  id={`hidden-${rkey}`}
+                  className="rounded-lg border border-conflict-line bg-surface p-4"
+                >
+                  <h3 className="text-lg font-bold">
+                    {listing ? <Link href={`/organisation/listings/${rkey}`}>{title}</Link> : title}
+                  </h3>
+                  <p className="mb-2 flex flex-wrap items-center gap-2">
+                    <Badge tone="conflict">{t('hidden')}</Badge>
+                    <span className="text-muted">
+                      {t('hiddenOn', { date: dateOf(isoDate(hide.decidedAt)) })}
+                    </span>
+                  </p>
+                  <p className="mb-2">{t(`hiddenGround.${hide.ground}`)}</p>
+                  <h4 className="font-semibold">{t('statementLabel')}</h4>
+                  <p className="mb-4 rounded-md border border-line bg-sunken p-4 whitespace-pre-line">
+                    {hide.statement}
+                  </p>
+                  {params.appealed === rkey && (
+                    <p role="status" className="mb-3 rounded-md border border-line bg-sunken p-4">
+                      {t('appealSent')}
+                    </p>
+                  )}
+                  {!hide.appealedAt ? (
+                    <details open={Boolean(appealError)}>
+                      <summary className="cursor-pointer font-semibold">{t('appeal')}</summary>
+                      <form action={appealHideAction} className="mt-3">
+                        <input type="hidden" name="uri" value={hide.listingUri} />
+                        <TextArea
+                          id={`appeal-${rkey}`}
+                          name="appeal"
+                          label={t('appealLabel')}
+                          hint={t('appealHint')}
+                          error={appealError}
+                          rows={4}
+                        />
+                        <Button type="submit" variant="secondary">
+                          {t('appealAction')}
+                        </Button>
+                      </form>
+                    </details>
+                  ) : !hide.appealDecidedAt ? (
+                    <p className="text-muted">
+                      {t('appealedOn', { date: dateOf(isoDate(hide.appealedAt)) })}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="mb-2">
+                        {t('upheldOn', {
+                          date: dateOf(isoDate(hide.appealDecidedAt)),
+                          note: hide.appealNote ?? '',
+                        })}
+                      </p>
+                      <p className="text-sm text-muted">{t('redress')}</p>
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <section aria-labelledby="listings" className="mb-10">
         <h2 id="listings" className="mb-3 text-xl font-bold">

@@ -132,7 +132,15 @@ export default async function ListingPage({ params }: Props) {
               <p className="font-semibold">{t('ownerBanner')}</p>
               <ul className="mb-2 list-disc pl-6">
                 {view.hiddenBecause.map((reason) => (
-                  <li key={reason}>{t(`hidden.${reason}`)}</li>
+                  <li key={reason}>
+                    {t(`hidden.${reason}`)}
+                    {reason === 'hiddenAfterReport' && (
+                      <>
+                        {' '}
+                        <Link href={`/organisation#hidden-${view.rkey}`}>{t('whyHidden')}</Link>
+                      </>
+                    )}
+                  </li>
                 ))}
               </ul>
             </>
@@ -300,6 +308,12 @@ export default async function ListingPage({ params }: Props) {
           <p>
             <Link href={home}>{t('seeOrganisation', { name })}</Link>
           </p>
+          {/* Anyone can report a public listing, signed in or not (#44). */}
+          {!view.owner && view.hiddenBecause.length === 0 && (
+            <p className="text-sm">
+              <Link href={`${path}/report`}>{t('report')}</Link>
+            </p>
+          )}
         </aside>
       </div>
     </article>

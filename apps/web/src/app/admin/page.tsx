@@ -12,23 +12,38 @@ import { getPreferences } from '@/i18n/preferences';
 import { MAX_REASON, orgReviews, requireAdmin } from '@/server/admin/admin';
 import { emailFact } from '@/server/org-page/email-fact';
 import { emailConfirmationOf, getPublicOrg, orgFacts } from '@/server/org-page/org';
+import { listingReports } from '@/server/reports/reports';
+import { ReportedListing, SecondLook } from './listing-moderation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Admin');
   return { title: t('title'), robots: { index: false } };
 }
 
-type Search = { done?: string; error?: string; action?: string; did?: string };
+type Search = { done?: string; error?: string; action?: string; did?: string; target?: string };
 
 const hidden = (chunks: ReactNode) => <span className="sr-only">{chunks}</span>;
 const summary = 'cursor-pointer text-accent underline underline-offset-[0.15em]';
 
-/** The moderation console (#43): organisations waiting, not approved and approved. */
+/**
+ * The moderation console: reports about listings and second looks (#44), then organisations
+ * waiting, not approved and approved (#43).
+ */
 export default async function AdminPage({ searchParams }: { searchParams: Promise<Search> }) {
   const moderator = await requireAdmin();
   const t = await getTranslations('Admin');
   const search = await searchParams;
-  const { pending, notApproved, approved } = await orgReviews().list();
+  const reports = listingReports();
+  const [{ pending, notApproved, approved }, open, appeals] = await Promise.all([
+    orgReviews().list(),
+    reports.open(),
+    reports.openAppeals(),
+  ]);
+  // Open reports by listing, oldest report first, so one decision covers them all.
+  const byListing = new Map<string, typeof open>();
+  for (const report of open) {
+    byListing.set(report.listingUri, [...(byListing.get(report.listingUri) ?? []), report]);
+  }
   const sections = [
     { key: 'pending', orgs: pending },
     { key: 'notApproved', orgs: notApproved },
@@ -44,6 +59,38 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           {t(`done.${search.done}` as never)}
         </p>
       )}
+      <section aria-labelledby="section-reports" className="mb-10">
+        <h2 id="section-reports" className="mb-3 text-xl font-bold">
+          {t('reports')} ({byListing.size})
+        </h2>
+        {byListing.size === 0 ? (
+          <p className="text-muted">{t('none')}</p>
+        ) : (
+          <ul className="grid gap-4">
+            {[...byListing].map(([uri, items]) => (
+              <li key={uri}>
+                <ReportedListing uri={uri} reports={items} moderator={moderator} search={search} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section aria-labelledby="section-second-looks" className="mb-10">
+        <h2 id="section-second-looks" className="mb-3 text-xl font-bold">
+          {t('secondLooks')} ({appeals.length})
+        </h2>
+        {appeals.length === 0 ? (
+          <p className="text-muted">{t('none')}</p>
+        ) : (
+          <ul className="grid gap-4">
+            {appeals.map((hide) => (
+              <li key={hide.listingUri}>
+                <SecondLook hide={hide} moderator={moderator} search={search} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       {sections.map(({ key, orgs }) => (
         <section key={key} aria-labelledby={`section-${key}`} className="mb-10">
           <h2 id={`section-${key}`} className="mb-3 text-xl font-bold">
