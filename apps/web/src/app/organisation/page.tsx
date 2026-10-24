@@ -176,6 +176,7 @@ export default async function DashboardPage({
         <Link href="/organisation/profile">{t('editProfile')}</Link>
         <Link href={`/org/${encodeURIComponent(did)}`}>{t('viewPublic')}</Link>
         <Link href="/organisation/animals">{t('allAnimals')}</Link>
+        <Link href="/account/data">{t('yourData')}</Link>
       </p>
 
       {changed && named && (

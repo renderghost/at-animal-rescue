@@ -76,8 +76,9 @@ export default async function AdopterProfilePage({
           <li>{t('privacyControl')}</li>
           <li>{t('privacyPublic')}</li>
         </ul>
-        <p className="mt-4">
+        <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
           <Link href="/adopter/shares">{t('sharedLinks')}</Link>
+          <Link href="/account/data">{t('yourData')}</Link>
         </p>
       </section>
 
