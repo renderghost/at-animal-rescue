@@ -1,14 +1,17 @@
 # Production image for the web app (#47). Build from the repository root:
 #   docker build -f apps/web/Dockerfile -t homeward-web .
+# Works with BuildKit and with Docker's classic builder (#104).
 
 FROM node:22-bookworm-slim AS build
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH COREPACK_ENABLE_DOWNLOAD_PROMPT=0 NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable
 WORKDIR /repo
+# Dependencies first, from the lockfile alone, so a code change doesn't download them again.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm fetch
 COPY . .
 # The whole workspace, so the build has its tooling (TypeScript lives at the root).
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --offline
 RUN pnpm --filter @homeward/web build
 
 FROM node:22-bookworm-slim
