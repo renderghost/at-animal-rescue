@@ -6,7 +6,14 @@ import { EmailConfirmationStore } from './email-confirmations';
 import type { Db } from './index';
 import { PrivateBlobStore } from './private-blobs';
 import { PostgresPrivateStore, PrivateStoreError } from './private-store';
-import { emailConfirmations, orgReviewLog, orgReviews, privateBlobs, sessions } from './schema';
+import {
+  emailConfirmations,
+  listingHides,
+  orgReviewLog,
+  orgReviews,
+  privateBlobs,
+  sessions,
+} from './schema';
 import { SessionStore } from './session-store';
 import { ShareLinkStore } from './share-links';
 
@@ -43,6 +50,18 @@ export interface AccountExport {
     reason?: string;
     decidedAt?: string;
     history: Array<{ action: string; reason?: string; byYou: boolean; at: string }>;
+    /** Listings hidden after a report (#44), with the statement and any second look. */
+    hiddenListings: Array<{
+      listingUri: string;
+      category: string;
+      ground: string;
+      statement: string;
+      decidedAt: string;
+      appealText?: string;
+      appealedAt?: string;
+      appealDecidedAt?: string;
+      appealNote?: string;
+    }>;
   };
 }
 
@@ -81,8 +100,8 @@ export class AccountDataStore {
 
   async export(did: string): Promise<AccountExport> {
     if (!isValidDid(did)) throw new PrivateStoreError(`Invalid DID: ${did}`);
-    const [records, files, sessionRows, links, [confirmation], review, history] = await Promise.all(
-      [
+    const [records, files, sessionRows, links, [confirmation], review, history, hides] =
+      await Promise.all([
         this.records.exportAll(did),
         this.db
           .select({
@@ -119,8 +138,12 @@ export class AccountDataStore {
           .from(orgReviewLog)
           .where(eq(orgReviewLog.did, did))
           .orderBy(desc(orgReviewLog.at), desc(orgReviewLog.id)),
-      ],
-    );
+        this.db
+          .select()
+          .from(listingHides)
+          .where(eq(listingHides.orgDid, did))
+          .orderBy(desc(listingHides.decidedAt)),
+      ]);
     const decision = review[0];
     return {
       exportedAt: this.now().toISOString(),
@@ -154,7 +177,7 @@ export class AccountDataStore {
           ...(confirmation.pendingEmail && { pendingEmail: confirmation.pendingEmail }),
         },
       }),
-      ...((decision || history.length > 0) && {
+      ...((decision || history.length > 0 || hides.length > 0) && {
         moderation: {
           state: decision?.state ?? 'pending',
           ...(decision?.reason && { reason: decision.reason }),
@@ -164,6 +187,17 @@ export class AccountDataStore {
             ...(entry.reason && { reason: entry.reason }),
             byYou: entry.actorDid === did,
             at: entry.at.toISOString(),
+          })),
+          hiddenListings: hides.map((hide) => ({
+            listingUri: hide.listingUri,
+            category: hide.category,
+            ground: hide.ground,
+            statement: hide.statement,
+            decidedAt: hide.decidedAt.toISOString(),
+            ...(hide.appealText && { appealText: hide.appealText }),
+            ...(hide.appealedAt && { appealedAt: iso(hide.appealedAt) }),
+            ...(hide.appealDecidedAt && { appealDecidedAt: iso(hide.appealDecidedAt) }),
+            ...(hide.appealNote && { appealNote: hide.appealNote }),
           })),
         },
       }),

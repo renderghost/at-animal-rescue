@@ -7,7 +7,7 @@ import { EmailConfirmationStore } from './email-confirmations';
 import { createDb } from './index';
 import { PrivateBlobStore } from './private-blobs';
 import { PostgresPrivateStore } from './private-store';
-import { orgReviewLog, orgReviews } from './schema';
+import { listingHides, orgReviewLog, orgReviews } from './schema';
 import { SessionStore } from './session-store';
 import { ShareLinkStore } from './share-links';
 
@@ -34,6 +34,7 @@ describe.runIf(databaseUrl)('AccountDataStore', () => {
       await store.erase(did);
       await db.delete(orgReviewLog).where(eq(orgReviewLog.did, did));
       await db.delete(orgReviews).where(eq(orgReviews.did, did));
+      await db.delete(listingHides).where(eq(listingHides.orgDid, did));
     }
     await db.close();
   });
@@ -94,6 +95,18 @@ describe.runIf(databaseUrl)('AccountDataStore', () => {
       decidedBy: 'did:plc:moderator',
       decidedAt: clock,
     });
+    const listingUri = `at://${did}/pet.homeward.listing/3m5z2kq5qns2l`;
+    await db.insert(listingHides).values({
+      listingUri,
+      orgDid: did,
+      category: 'STATEMENT_CATEGORY_ANIMAL_WELFARE',
+      ground: 'terms',
+      statement: 'A tiny hutch.',
+      decidedBy: 'did:plc:moderator',
+      decidedAt: clock,
+      appealText: 'It has a run.',
+      appealedAt: clock,
+    });
     await db.insert(orgReviewLog).values([
       { did, action: 'reject', reason: 'No charity number.', actorDid: 'did:plc:moderator' },
       { did, action: 'requestReview', actorDid: did },
@@ -115,6 +128,9 @@ describe.runIf(databaseUrl)('AccountDataStore', () => {
     });
     expect(exported.moderation).toMatchObject({ state: 'rejected', reason: 'No charity number.' });
     expect(exported.moderation?.history.map((entry) => entry.byYou).sort()).toEqual([false, true]);
+    expect(exported.moderation?.hiddenListings).toEqual([
+      expect.objectContaining({ statement: 'A tiny hutch.', appealText: 'It has a run.' }),
+    ]);
     expect(JSON.stringify(exported)).not.toContain('did:plc:moderator');
   });
 
