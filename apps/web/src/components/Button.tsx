@@ -28,3 +28,12 @@ export function ButtonLink({
 }: ComponentProps<typeof Link> & { variant?: Variant }) {
   return <Link className={cn(base, variants[variant], className)} {...props} />;
 }
+
+/** A file download styled as a button: a plain link, so the browser saves the file. */
+export function DownloadLink({
+  variant = 'primary',
+  className,
+  ...props
+}: ComponentProps<'a'> & { href: string; variant?: Variant }) {
+  return <a download className={cn(base, variants[variant], className)} {...props} />;
+}

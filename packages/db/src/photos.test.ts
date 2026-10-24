@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createDb } from './index';
 import { IndexStore } from './index-store';
-import { isPublicPhoto } from './photos';
+import { isPublicPhoto, photoCidsOf } from './photos';
 import { indexListings, indexOrgs } from './schema';
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -77,6 +77,12 @@ describe.runIf(databaseUrl)('isPublicPhoto', () => {
     expect(await isPublicPhoto(db, did, OTHER)).toBe(false);
     expect(await isPublicPhoto(db, 'did:plc:someoneelse', PHOTO)).toBe(false);
     expect(await isPublicPhoto(db, (await seed('adopted')).did, PHOTO)).toBe(true);
+  });
+
+  it("lists an organisation's photos, for clearing caches", async () => {
+    const { did } = await seed();
+    expect(await photoCidsOf(db, did)).toEqual([PHOTO]);
+    expect(await photoCidsOf(db, 'did:plc:someoneelse')).toEqual([]);
   });
 
   it('hides them once withdrawn, hidden after a report, or the approval is revoked', async () => {
