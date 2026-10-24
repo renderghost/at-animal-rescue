@@ -1,14 +1,19 @@
-# Production stack (#47) on one EU server: Caddy (TLS), the web app, the indexer,
-# Postgres/PostGIS and nightly encrypted backups. Runs from /opt/homeward, next to a .env
+# Production stack (#47, #48) on one EU server: Caddy (TLS), the web app, the indexer,
+# Postgres/PostGIS, nightly encrypted backups and Bugsink for errors. Runs from /opt/homeward, next to a .env
 # made from production.env.example, which both configures the containers and fills in the
 # ${...} values below (see docs/DEPLOY.md).
 name: homeward
 
+x-env: &env
+  DATABASE_URL: postgres://homeward:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/homeward
+  # Scaleway Transactional Email (#48): SMTP over TLS, signed in with the project's API key.
+  SMTP_URL: smtps://${TEM_PROJECT_ID:-}:${TEM_SECRET_KEY:-}@smtp.tem.scaleway.com:465
+  # Error reports name the release they came from.
+  IMAGE_TAG: ${IMAGE_TAG:-latest}
+
 x-app: &app
   env_file: .env
   restart: unless-stopped
-  environment:
-    DATABASE_URL: postgres://homeward:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/homeward
   depends_on:
     postgres:
       condition: service_healthy
@@ -25,6 +30,7 @@ services:
       - '443:443/udp'
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ERRORS_DOMAIN: ${ERRORS_DOMAIN:?set ERRORS_DOMAIN in .env}
       ACME_EMAIL: ${ACME_EMAIL:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
@@ -33,10 +39,16 @@ services:
       - caddy-config:/config
     depends_on:
       - web
+      - bugsink
 
   web:
     <<: *app
     image: ghcr.io/renderghost/homeward-web:${IMAGE_TAG:-latest}
+    environment:
+      <<: *env
+      SENTRY_DSN: ${SENTRY_DSN_WEB:-}
+      # /api/health reports the indexer too, for the uptime monitor.
+      INDEXER_HEALTH_URL: http://indexer:8081/health
     volumes:
       # Public photos, resized; can always be rebuilt from the PDS (#26).
       - image-cache:/data/images
@@ -55,6 +67,21 @@ services:
   indexer:
     <<: *app
     image: ghcr.io/renderghost/homeward-indexer:${IMAGE_TAG:-latest}
+    environment:
+      <<: *env
+      SENTRY_DSN: ${SENTRY_DSN_INDEXER:-}
+    healthcheck:
+      # 200 while connected to Jetstream.
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8081/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # Runs once per deploy, before the app starts.
   migrate:
@@ -97,6 +124,27 @@ services:
       postgres:
         condition: service_healthy
 
+  # Error tracking (#48): Sentry-compatible and self-hosted, so error reports, which can hold
+  # personal data, never leave this server. Kept for 90 days.
+  bugsink:
+    image: bugsink/bugsink:2.6.2
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${BUGSINK_SECRET_KEY:?set BUGSINK_SECRET_KEY in .env}
+      BASE_URL: https://${ERRORS_DOMAIN}
+      BEHIND_HTTPS_PROXY: 'true'
+      SINGLE_TEAM: 'true'
+      MAX_EVENT_AGE_DAYS: 90
+      # Alerts by email, through Scaleway Transactional Email.
+      EMAIL_HOST: smtp.tem.scaleway.com
+      EMAIL_PORT: 465
+      EMAIL_USE_SSL: 'true'
+      EMAIL_HOST_USER: ${TEM_PROJECT_ID:-}
+      EMAIL_HOST_PASSWORD: ${TEM_SECRET_KEY:-}
+      DEFAULT_FROM_EMAIL: ${EMAIL_FROM:-}
+    volumes:
+      - bugsink-data:/data
+
   # Cookie-free analytics (#46), only with `--profile analytics`; its own database on the
   # same server (create it once, see docs/DEPLOY.md).
   umami:
@@ -112,6 +160,7 @@ services:
         condition: service_healthy
 
 volumes:
+  bugsink-data:
   caddy-data:
   caddy-config:
   image-cache:

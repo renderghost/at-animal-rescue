@@ -22,3 +22,8 @@ export class ServiceStateStore {
       .onConflictDoUpdate({ target: serviceState.key, set: { value, updatedAt: sql`now()` } });
   }
 }
+
+/** Resolves when the database answers a trivial query, for health checks (#48). */
+export async function databaseAnswers(db: Db): Promise<void> {
+  await db.execute(sql`select 1`);
+}

@@ -1,0 +1,31 @@
+# Uptime monitoring (#48) on a second, small server in another Scaleway zone, so it can still
+# alert when the main server is down. Runs from /opt/monitor with a .env holding
+# MONITOR_DOMAIN and ACME_EMAIL (see docs/DEPLOY.md).
+name: homeward-monitor
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      MONITOR_DOMAIN: ${MONITOR_DOMAIN:?set MONITOR_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.7
+    restart: unless-stopped
+    volumes:
+      - uptime-kuma-data:/app/data
+
+volumes:
+  caddy-data:
+  caddy-config:
+  uptime-kuma-data:

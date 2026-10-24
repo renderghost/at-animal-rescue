@@ -1,6 +1,11 @@
 # Deploying Homeward
 
-Homeward runs on one server at Scaleway in Paris (#47). Everything stays in the EU: the server, the database and its backups. Email (Scaleway Transactional Email) and monitoring come with #48.
+Homeward runs on one server at Scaleway in Paris (#47), watched by a small second server in another zone (#48). Everything stays in the EU:
+
+- the servers, the database and its backups
+- email, through Scaleway Transactional Email
+- error reports, in Bugsink on our own server
+- uptime checks, from Uptime Kuma on the second server
 
 ## What runs
 
@@ -14,7 +19,10 @@ Homeward runs on one server at Scaleway in Paris (#47). Everything stays in the 
 | `migrate`  | Runs database migrations once per deploy, before `web` and `indexer` start.                    |
 | `postgres` | Postgres 17 with PostGIS. Not reachable from outside the server.                               |
 | `backup`   | Nightly encrypted dumps to Scaleway Object Storage (`ghcr.io/renderghost/homeward-backup`).    |
+| `bugsink`  | Error tracking (#48) at its own address. The web app and indexer report errors to it.          |
 | `umami`    | Optional cookie-free analytics (#46), only with `--profile analytics`.                         |
+
+`deploy/monitor/compose.yml` runs Uptime Kuma, behind its own Caddy, on the second server.
 
 Images are built by GitHub Actions and stored in GitHub Container Registry. They hold code only, never personal data. Every merge to `main` that passes CI builds them, tagged `sha-<commit>` and `latest`, and deploys them.
 
@@ -27,10 +35,19 @@ Images are built by GitHub Actions and stored in GitHub Container Registry. They
 3. Give it a security group that allows inbound TCP 22 (only from your own address if you can), TCP 80, TCP 443 and UDP 443. Drop everything else.
 4. Create a **private** Object Storage bucket, `homeward-backups`, in `fr-par`.
 5. In IAM, create an application with an API key that can only write to that bucket. Its access key and secret key go in `.env` later.
+6. In Transactional Email, add Homeward's domain. Add the SPF, DKIM and DMARC records the console shows to your DNS, and wait until it says the domain is verified. Mail from an unverified domain isn't sent.
+7. In IAM, create an application with an API key that can only send through Transactional Email. Its secret key, and the project's ID, go in `.env` as `TEM_SECRET_KEY` and `TEM_PROJECT_ID`.
+8. Create a second, small Instance for monitoring, for example `STARDUST1-S` or `DEV1-S`, in **another zone** such as `nl-ams-1`. A monitor on the same machine can't tell you that machine is down.
 
 ### 2. DNS
 
-Point an `A` and an `AAAA` record for Homeward's domain at the Instance. Caddy gets the certificate on first start.
+Point `A` and `AAAA` records at the servers. Caddy gets each certificate on first start.
+
+| Name                           | Points at               |
+| ------------------------------ | ----------------------- |
+| `DOMAIN` (Homeward itself)     | the main Instance       |
+| `ERRORS_DOMAIN` (Bugsink)      | the main Instance       |
+| `MONITOR_DOMAIN` (Uptime Kuma) | the monitoring Instance |
 
 ### 3. The server
 
@@ -63,12 +80,20 @@ Add a second person's public key too, so losing one key doesn't lose the backups
 
 ### 5. Settings
 
-Copy `deploy/production.env.example` to `/opt/homeward/.env` and fill it in. Never commit it. It holds:
+Copy `deploy/production.env.example` to `/opt/homeward/.env` and fill it in. Make it readable by `deploy` only, and never commit it:
+
+```sh
+chmod 600 /opt/homeward/.env
+```
+
+It holds:
 
 - `DOMAIN`, `SITE_URL` and `ACME_EMAIL`.
 - `POSTGRES_PASSWORD`: generate it with `openssl rand -base64 32`.
 - `PRIVATE_STORE_KEYS` and `PRIVATE_STORE_ACTIVE_KEY`: generate with `openssl rand -base64 32`. **Keep a copy offline with the backup key.** Without these, private data can't be read, even from a backup.
-- `ADMIN_DIDS`, `SMTP_URL` and `EMAIL_FROM` (#48).
+- `ADMIN_DIDS`.
+- `TEM_PROJECT_ID`, `TEM_SECRET_KEY` and `EMAIL_FROM` from step 1.7. `EMAIL_FROM` must be on the verified domain.
+- `ERRORS_DOMAIN` and `BUGSINK_SECRET_KEY` (`openssl rand -base64 50`). `SENTRY_DSN_WEB` and `SENTRY_DSN_INDEXER` stay empty until step 6.
 - `BACKUP_AGE_RECIPIENTS`, and the `RCLONE_CONFIG_BACKUP_*` keys from step 1.5.
 
 ### 6. First start
@@ -82,7 +107,20 @@ docker compose -f compose.production.yml ps        # everything running, migrate
 docker compose -f compose.production.yml run --rm backup once   # check a backup reaches the bucket
 ```
 
-Open `https://<domain>/` to check it works.
+Open `https://<domain>/` to check it works, and `https://<domain>/api/health`, which should say `"status":"ok"`.
+
+Then set up error tracking:
+
+```sh
+docker compose -f compose.production.yml exec bugsink bugsink-manage createsuperuser
+```
+
+1. Sign in at `https://<errors domain>/`.
+2. Create a team, then two projects, `web` and `indexer`.
+3. Copy each project's DSN into `.env` as `SENTRY_DSN_WEB` and `SENTRY_DSN_INDEXER`, and run `up -d` again.
+4. Turn on email alerts for new issues in each project.
+
+Error reports carry the error, its stack trace and the route, never cookies, headers, request bodies, query strings or user details. They're kept for 90 days.
 
 ### 7. Automatic deploys
 
@@ -104,7 +142,7 @@ From then on, every merge to `main` that passes CI does the following:
 3. pulls the new images
 4. runs migrations
 5. restarts the app
-6. checks that the site answers
+6. checks `/api/health` says the site, database and indexer are up
 
 If migrations fail, the running version stays up and the workflow fails.
 
@@ -119,12 +157,32 @@ docker compose -f compose.production.yml --profile analytics up -d
 
 Log in to Umami at `https://<analytics domain>/` (it starts as `admin` / `umami`, so change that straight away). Add the website, then set `UMAMI_SCRIPT_URL` (`https://<analytics domain>/script.js`) and `UMAMI_WEBSITE_ID` in `.env` and run `up -d` again.
 
+### 9. Uptime monitoring
+
+On the monitoring Instance, install Docker as in step 3, then:
+
+```sh
+install -d -o deploy -g deploy /opt/monitor
+# Copy deploy/monitor/compose.yml and deploy/monitor/Caddyfile to /opt/monitor, and create
+# /opt/monitor/.env with MONITOR_DOMAIN and ACME_EMAIL.
+cd /opt/monitor && docker compose up -d
+```
+
+Open `https://<monitor domain>/` and create the admin account. Then add:
+
+1. **Email notifications** through Transactional Email: SMTP host `smtp.tem.scaleway.com`, port 465, TLS, with the project ID as the username and the secret key as the password. Make this the default notification.
+2. **Homeward**: an HTTP(s) keyword monitor on `https://<domain>/api/health`, with keyword `"status":"ok"` and a 60-second interval. It fails if the site, the database or the indexer is down. Turn on certificate expiry alerts.
+3. **Errors**: an HTTP(s) monitor on `https://<errors domain>/`, every 5 minutes.
+4. **Nightly backup**: a Push monitor with a heartbeat interval of 25 hours. Put its push URL in the main server's `.env` as `BACKUP_HEARTBEAT_URL`, then run `docker compose -f compose.production.yml up -d backup`. Run `backup once` to check the heartbeat arrives.
+
 ## Everyday
 
 - **Deploys** happen on merge. Watch them under Actions → "Images and deploy".
 - **Rolling back:** on the server, run `IMAGE_TAG=sha-<earlier commit> docker compose -f compose.production.yml up -d`. Migrations only ever move forwards, and lexicons and schema changes are backwards compatible, so an older app runs on a newer database. Check the migration list first if the change was large.
 - **Changing settings:** edit `/opt/homeward/.env`, then run `docker compose -f compose.production.yml up -d`.
 - **Logs:** `docker compose -f compose.production.yml logs -f web indexer`.
+- **Errors:** Bugsink emails each new issue. The list is at `https://<errors domain>/`.
+- **Health:** `https://<domain>/api/health` says whether the database and the indexer are up. Uptime Kuma checks it every minute.
 - **After an outage:** if the indexer was down, or an account's listings look out of date, resync from the accounts' repositories (#24). Use `--known` for every organisation in the index, or name the accounts:
 
   ```sh
@@ -158,3 +216,26 @@ docker compose -f compose.production.yml up -d
 ```
 
 The restored private data can only be read with the `PRIVATE_STORE_KEYS` that were in use when the backup was made.
+
+## Secrets
+
+Production secrets live in two places only:
+
+- `/opt/homeward/.env` on the server (owned by `deploy`, mode 600)
+- the `production` environment in GitHub, for deploys
+
+Both operators keep a copy of each in a shared password-manager vault. Secrets never go in git, chat, issues or email.
+
+| Secret                                        | Lives in                     | Offline copy               | To rotate                                                                                                                                                                                                                                        |
+| --------------------------------------------- | ---------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POSTGRES_PASSWORD`                           | `.env`                       | Vault                      | `docker compose exec postgres psql -U homeward -c "ALTER USER homeward PASSWORD '…'"`, then update `.env` and `up -d`.                                                                                                                           |
+| `PRIVATE_STORE_KEYS`                          | `.env`                       | Vault, with the backup key | Add a new `id:key`, make it `PRIVATE_STORE_ACTIVE_KEY`, `up -d`, then `docker compose run --rm migrate rotate-keys`. When it reports no failures, wait 30 days (the longest session) and remove the old key. Old backups still need the old key. |
+| `TEM_SECRET_KEY`                              | `.env`                       | Vault                      | Create a new IAM key with the same rights, update `.env`, `up -d`, delete the old key.                                                                                                                                                           |
+| `RCLONE_CONFIG_BACKUP_*`                      | `.env`                       | Vault                      | As for TEM, with the bucket-only key.                                                                                                                                                                                                            |
+| age backup key                                | Offline only                 | Two people's vaults        | Make a new key and add its public key to `BACKUP_AGE_RECIPIENTS`. Keep the old private key until the last backup made with it has expired (6 months).                                                                                            |
+| `BUGSINK_SECRET_KEY`, `UMAMI_APP_SECRET`      | `.env`                       | Vault                      | New value, `up -d`. People signed in to those tools sign in again.                                                                                                                                                                               |
+| `DEPLOY_SSH_KEY`                              | GitHub `production`          | Not needed                 | New key pair; replace it in `authorized_keys` and in GitHub.                                                                                                                                                                                     |
+| GHCR read token                               | `docker login` on the server | Not needed                 | New token with `read:packages`, then `docker login ghcr.io` again.                                                                                                                                                                               |
+| Admin passwords (Bugsink, Uptime Kuma, Umami) | Each tool                    | Vault                      | Change in the tool.                                                                                                                                                                                                                              |
+
+Rotate any secret at once if it may have leaked, and each time an operator leaves.

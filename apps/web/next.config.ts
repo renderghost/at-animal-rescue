@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
   // Internal workspace packages ship TypeScript source.
   transpilePackages: ['@homeward/db', '@homeward/lexicons', '@homeward/matching'],
+  // Error reporting (#48) loads at run time, as Node expects it to.
+  serverExternalPackages: ['@sentry/node'],
   poweredByHeader: false,
   experimental: {
     // Full-size phone photos from browsers without JavaScript (#32); the server shrinks them.
