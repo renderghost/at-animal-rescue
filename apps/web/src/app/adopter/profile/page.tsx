@@ -73,6 +73,9 @@ export default async function AdopterProfilePage({
           <li>{t('privacyControl')}</li>
           <li>{t('privacyPublic')}</li>
         </ul>
+        <p className="mt-4">
+          <Link href="/adopter/shares">{t('sharedLinks')}</Link>
+        </p>
       </section>
 
       {cleared && (

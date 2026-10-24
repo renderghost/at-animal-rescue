@@ -3,6 +3,7 @@ import { listingDistanceKm } from '@homeward/db';
 import {
   evaluateMatch,
   type CriterionLevel,
+  type Household,
   type MatchState,
   type MatchSummary,
 } from '@homeward/matching';
@@ -11,6 +12,7 @@ import { getCurrentUser } from '../auth/session';
 import { getDb } from '../db';
 import { getCurrentRole } from '../onboarding/current-role';
 import { getPrivateStore } from '../private-store';
+import type { ListingRecord } from '../listings/listing-form';
 import type { ListingView } from './listing';
 
 export interface CriterionFit {
@@ -67,15 +69,39 @@ export async function listingFit(did: string, view: ListingView): Promise<Listin
   if (!household) return { kind: 'invite', viewer: 'newcomer' };
 
   const { $type: _type, ...answers } = household;
+  return fitOf({
+    household: answers,
+    location,
+    listingUri: `at://${did}/pet.homeward.listing/${view.rkey}`,
+    criteria: view.listing.criteria,
+  });
+}
+
+export type Fit = Extract<ListingFit, { kind: 'match' }> & { distanceKm?: number };
+
+/**
+ * How a listing's criteria fit a household, with distance from the adopter's private
+ * location, measured as search measures it. For the adopter themselves (#40) and for an
+ * organisation they shared their answers with (#42).
+ */
+export async function fitOf({
+  household,
+  location,
+  listingUri,
+  criteria: listingCriteria,
+}: {
+  household: Household;
+  location?: { latitude?: string; longitude?: string };
+  listingUri: string;
+  criteria?: ListingRecord['criteria'];
+}): Promise<Fit> {
   const from = coordinates(location);
-  const distanceKm =
-    from &&
-    (await listingDistanceKm(getDb(), `at://${did}/pet.homeward.listing/${view.rkey}`, from));
-  const result = evaluateMatch({ criteria: view.listing.criteria, household: answers, distanceKm });
+  const distanceKm = from && (await listingDistanceKm(getDb(), listingUri, from));
+  const result = evaluateMatch({ criteria: listingCriteria, household, distanceKm });
   const criteria = result.criteria.map((evaluation): CriterionFit => {
     const { state, level } = evaluation;
     return state === 'unknown'
-      ? { state, level, unknown: unknownOf(evaluation, answers, from !== undefined) }
+      ? { state, level, unknown: unknownOf(evaluation, household, from !== undefined) }
       : { state, level, answer: answerOf(evaluation) };
   });
   return {
@@ -84,5 +110,6 @@ export async function listingFit(did: string, view: ListingView): Promise<Listin
     criteria,
     conflicts: criteria.filter(({ state }) => state === 'conflict').length,
     unknowns: criteria.filter(({ state }) => state === 'unknown').length,
+    ...(distanceKm !== undefined && { distanceKm }),
   };
 }

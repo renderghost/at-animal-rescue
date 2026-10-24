@@ -220,3 +220,37 @@ export const privateBlobs = pgTable(
   },
   (t) => [primaryKey({ columns: [t.did, t.record, t.cid] })],
 );
+
+/**
+ * Links an adopter sends with an enquiry (#42) so one organisation can read their answers
+ * for one listing. Only a hash of each link's secret is stored; links expire, can be
+ * withdrawn, and every opening is logged for the adopter to see.
+ */
+export const shareLinks = pgTable(
+  'share_links',
+  {
+    id: text().primaryKey(),
+    tokenHash: text('token_hash').notNull().unique(),
+    adopterDid: text('adopter_did').notNull(),
+    /** Shown to the organisation; public anyway, and kept so viewing needs no lookup. */
+    adopterHandle: text('adopter_handle').notNull(),
+    orgDid: text('org_did').notNull(),
+    listingUri: text('listing_uri').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (t) => [index('share_links_adopter').on(t.adopterDid)],
+);
+
+/** When each share link was opened: the time only, nothing about who or from where. */
+export const shareLinkViews = pgTable(
+  'share_link_views',
+  {
+    linkId: text('link_id')
+      .notNull()
+      .references(() => shareLinks.id, { onDelete: 'cascade' }),
+    viewedAt: timestamp('viewed_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('share_link_views_link').on(t.linkId)],
+);

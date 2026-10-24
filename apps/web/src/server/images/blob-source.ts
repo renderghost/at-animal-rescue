@@ -1,12 +1,10 @@
 import 'server-only';
 import { cidForRawBytes } from '@atproto/lex';
-import { getPds, IdResolver, MemoryCache } from '@atproto/identity';
+import { pdsOriginOf } from '../atproto/public-repo';
 import { safeFetch } from '../auth/fetch';
-import { safePdsOrigin } from '../auth/identity';
 
 /** The lexicon allows photos up to 2 MB; anything much larger isn't one of ours. */
 const MAX_BYTES = 5 * 1024 * 1024;
-const resolver = new IdResolver({ timeout: 5000, didCache: new MemoryCache() });
 
 /** Reads a response body, refusing more than the limit. */
 async function readLimited(response: Response, limit: number): Promise<Buffer> {
@@ -27,9 +25,7 @@ async function readLimited(response: Response, limit: number): Promise<Buffer> {
  * checked against the CID it was asked for, so a PDS can't swap in other content.
  */
 export async function fetchPublicBlob(did: string, cid: string): Promise<Buffer | 'notFound'> {
-  const doc = await resolver.did.resolve(did);
-  const endpoint = doc ? getPds(doc) : undefined;
-  const origin = endpoint ? safePdsOrigin(endpoint) : undefined;
+  const origin = await pdsOriginOf(did);
   if (!origin) return 'notFound';
   const url = new URL('/xrpc/com.atproto.sync.getBlob', origin);
   url.searchParams.set('did', did);
