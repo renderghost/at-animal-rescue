@@ -13,3 +13,11 @@ export async function siteOrigin(): Promise<string> {
     list.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
   return `${protocol}://${host}`;
 }
+
+/**
+ * Whether cookies are Secure (HTTPS only): in production, unless SITE_URL is plain http, as
+ * in the local Docker stack, where Safari would refuse them from http://localhost.
+ */
+export function secureCookies(): boolean {
+  return process.env.NODE_ENV === 'production' && !process.env.SITE_URL?.startsWith('http:');
+}

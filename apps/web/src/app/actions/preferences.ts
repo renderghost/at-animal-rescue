@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { COOKIES, isLanguage } from '@/i18n/config';
 import { isCountry } from '@/i18n/countries';
 import { isUnitsPreference } from '@/lib/format';
+import { secureCookies } from '@/server/site';
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
@@ -18,7 +19,7 @@ export async function savePreferences(formData: FormData): Promise<void> {
     maxAge: ONE_YEAR,
     sameSite: 'lax' as const,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookies(),
   };
 
   const language = formData.get('language');

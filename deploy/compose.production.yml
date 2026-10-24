@@ -1,7 +1,8 @@
 # Production stack (#47, #48) on one EU server: Caddy (TLS), the web app, the indexer,
-# Postgres/PostGIS, nightly encrypted backups and Bugsink for errors. Runs from /opt/homeward, next to a .env
-# made from production.env.example, which both configures the containers and fills in the
-# ${...} values below (see docs/DEPLOY.md).
+# Postgres/PostGIS, nightly encrypted backups and Bugsink for errors. Runs from /opt/homeward,
+# next to a .env made from production.env.example, which both configures the containers and
+# fills in the ${...} values below (see docs/DEPLOY.md). On your own computer, use the
+# docker-compose.yml at the repository root instead (docs/LOCAL.md).
 name: homeward
 
 x-env: &env
@@ -83,7 +84,15 @@ services:
       timeout: 5s
       retries: 3
 
-  # Runs once per deploy, before the app starts.
+  # Checks .env first (#102): a mistake stops the deploy here, before anything changes, and
+  # the running version stays up. Run it yourself after editing .env: `run --rm check`.
+  check:
+    image: ghcr.io/renderghost/homeward-indexer:${IMAGE_TAG:-latest}
+    command: check
+    env_file: .env
+    restart: 'no'
+
+  # Runs once per deploy, after the check and before the app starts.
   migrate:
     image: ghcr.io/renderghost/homeward-indexer:${IMAGE_TAG:-latest}
     command: migrate
@@ -91,6 +100,8 @@ services:
     environment:
       DATABASE_URL: postgres://homeward:${POSTGRES_PASSWORD}@postgres:5432/homeward
     depends_on:
+      check:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
     restart: 'no'

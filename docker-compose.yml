@@ -1,15 +1,104 @@
-# Local development services. Production: deploy/compose.production.yml (docs/DEPLOY.md).
+# Homeward on your own computer (docs/LOCAL.md). Production: deploy/compose.production.yml.
+#
+#   docker compose up --build --wait     the whole app, built from this checkout:
+#                                        http://localhost:3000, email at http://localhost:8025
+#   docker compose up -d --wait postgres mailpit
+#                                        only the database and email, for `pnpm dev`
+#   docker compose down                  stop (add -v to wipe the local database)
+#
+# Settings come from .env (copy .env.example), and work without it. Addresses inside Docker
+# are set here, so the same .env also works for `pnpm dev`.
 name: homeward
 
+x-app: &app
+  env_file:
+    - path: .env
+      required: false
+  environment: &app-env
+    DATABASE_URL: postgres://homeward:homeward@postgres:5432/homeward
+    SMTP_URL: smtp://mailpit:1025
+    # The development-only key from .env.example. Never use it in production.
+    PRIVATE_STORE_KEYS: ${PRIVATE_STORE_KEYS:-dev1:ZGV2LW9ubHktZG8tbm90LXVzZS1pbi1wcm9kdWN0aW8=}
+    PRIVATE_STORE_ACTIVE_KEY: ${PRIVATE_STORE_ACTIVE_KEY:-dev1}
+    NOMINATIM_CONTACT: ${NOMINATIM_CONTACT:-dev@localhost}
+    # Plain http, so cookies work without HTTPS (and in Safari).
+    SITE_URL: ${SITE_URL:-http://localhost:${WEB_PORT:-3000}}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+
+# The same Dockerfiles as production; migrate and indexer share one image.
+x-indexer-image: &indexer-image
+  build:
+    context: .
+    dockerfile: apps/indexer/Dockerfile
+  image: homeward-indexer:local
+
 services:
+  web:
+    <<: *app
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: homeward-web:local
+    environment:
+      <<: *app-env
+      INDEXER_HEALTH_URL: http://indexer:8081/health
+      IMAGE_CACHE_DIR: /data/images
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    volumes:
+      - image-cache:/data/images
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+
+  indexer:
+    <<: [*app, *indexer-image]
+    healthcheck:
+      # 200 while connected to Jetstream, which needs an internet connection.
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8081/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+
+  # Brings the database up to date, then exits; web and indexer wait for it.
+  migrate:
+    <<: *indexer-image
+    command: migrate
+    environment:
+      DATABASE_URL: postgres://homeward:homeward@postgres:5432/homeward
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgis/postgis:17-3.5
+    # PostGIS publishes Intel images only; Apple Silicon Macs run this one through Rosetta.
+    platform: linux/amd64
     environment:
       POSTGRES_USER: homeward
       POSTGRES_PASSWORD: homeward
       POSTGRES_DB: homeward
     ports:
-      - '5432:5432'
+      # For `pnpm dev` and the tests. Taken by another Postgres? Set POSTGRES_PORT in .env.
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +112,8 @@ services:
     image: axllent/mailpit:v1.27
     ports:
       - '1025:1025' # SMTP
-      - '8025:8025' # Web UI: http://localhost:8025
+      - '8025:8025' # Inbox: http://localhost:8025
 
 volumes:
+  image-cache:
   postgres-data:

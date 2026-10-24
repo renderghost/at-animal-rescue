@@ -4,29 +4,18 @@ Animal rescue and adoption on the AT Protocol (the Atmosphere). Rescue organisat
 
 Scope and decisions: [`docs/MVP-SPEC.md`](docs/MVP-SPEC.md).
 
-## Getting started
+## Running it locally
 
-Requirements: Node 22 (see `.nvmrc`) and pnpm 10 (`corepack enable`).
-
-```sh
-pnpm install
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm dev          # web app on http://localhost:3000
-```
-
-## Local services
-
-Requires Docker. Starts Postgres with PostGIS, and Mailpit to catch outgoing email.
+Requires Docker. Everything runs in containers, built from your copy of the code:
 
 ```sh
 cp .env.example .env
-pnpm services:up     # waits until healthy
-pnpm db:migrate
+docker compose up --build --wait   # the first time takes 5 to 10 minutes
 ```
 
-Mailpit's inbox is at http://localhost:8025. Stop the services with `pnpm services:down`; add `-v` to `docker compose down` to wipe data.
+Then open http://localhost:3000. Emails Homeward sends are caught at http://localhost:8025.
+
+For live reload with `pnpm dev` (Node 22 and pnpm 10), signing in, and what to do when something goes wrong, see [`docs/LOCAL.md`](docs/LOCAL.md).
 
 ## Workspace
 
@@ -42,21 +31,21 @@ Internal packages are consumed as TypeScript source and have no build step.
 
 ## Scripts
 
-| Command             | What it does                             |
-| ------------------- | ---------------------------------------- |
-| `pnpm dev`          | Run every workspace's dev task           |
-| `pnpm build`        | Build every workspace                    |
-| `pnpm lint`         | ESLint across the repo                   |
-| `pnpm typecheck`    | `tsc` in every workspace                 |
-| `pnpm test`         | Vitest across the repo                   |
-| `pnpm format`       | Prettier, writing changes                |
-| `pnpm format:check` | Prettier, failing on unformatted files   |
-| `pnpm services:up`  | Start local Postgres/PostGIS and Mailpit |
-| `pnpm db:migrate`   | Apply database migrations                |
+| Command             | What it does                                            |
+| ------------------- | ------------------------------------------------------- |
+| `pnpm dev`          | Run every workspace's dev task                          |
+| `pnpm build`        | Build every workspace                                   |
+| `pnpm lint`         | ESLint across the repo                                  |
+| `pnpm typecheck`    | `tsc` in every workspace                                |
+| `pnpm test`         | Vitest across the repo                                  |
+| `pnpm format`       | Prettier, writing changes                               |
+| `pnpm format:check` | Prettier, failing on unformatted files                  |
+| `pnpm services:up`  | Start only Postgres/PostGIS and Mailpit, for `pnpm dev` |
+| `pnpm db:migrate`   | Apply database migrations                               |
 
 ## Deploying
 
-Production runs on one Scaleway server in Paris, deployed automatically when a change reaches `main`. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
+Production runs on one Scaleway server in Paris, deployed automatically when a change reaches `main`. Its settings are checked before every deploy. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Contributing
 
