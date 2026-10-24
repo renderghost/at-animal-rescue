@@ -288,7 +288,11 @@ export default async function DashboardPage({
                       {t('hiddenOn', { date: dateOf(isoDate(hide.decidedAt)) })}
                     </span>
                   </p>
-                  <p className="mb-2">{t(`hiddenGround.${hide.ground}`)}</p>
+                  <p className="mb-2">
+                    {t.rich(`hiddenGround.${hide.ground}`, {
+                      link: (chunks) => <Link href="/guidelines">{chunks}</Link>,
+                    })}
+                  </p>
                   <h4 className="font-semibold">{t('statementLabel')}</h4>
                   <p className="mb-4 rounded-md border border-line bg-sunken p-4 whitespace-pre-line">
                     {hide.statement}

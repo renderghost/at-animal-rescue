@@ -1104,7 +1104,7 @@
     "hiddenOn": "Hidden on {date}",
     "hiddenGround": {
       "illegal": "We believe it breaks the law.",
-      "terms": "It breaks Homeward's rules."
+      "terms": "It breaks <link>Homeward's rules for listings</link>."
     },
     "statementLabel": "The moderator's reasons",
     "appeal": "Ask for a second look",
@@ -1576,7 +1576,7 @@
     "metaTitle": "Report a listing",
     "back": "Back to {title}",
     "title": "Report {title}",
-    "intro": "Tell us if this listing breaks the law or Homeward's rules. A moderator reads every report. {name} isn't told who reported it.",
+    "intro": "Tell us if this listing breaks the law or <link>Homeward's rules for listings</link>. A moderator reads every report. {name} isn't told who reported it.",
     "reason": "What's wrong?",
     "reasons": {
       "welfare": {
@@ -1675,7 +1675,7 @@
       "body": "Hello,\n\nAfter a report, a moderator has hidden {name}'s listing \"{title}\". It no longer appears in Homeward's search and its page isn't public. Nothing has been deleted: it's still in your account.\n\n{ground}\n\nThe moderator's reasons:\n\n{statement}\n\nA person made this decision, after someone reported the listing. We don't share who reported it.\n\nIf you think we've got it wrong, or you've fixed the problem, ask for a second look from your dashboard: {dashboard}\n\nYou can also take the decision to a certified out-of-court dispute settlement body or to the courts.\n\nHomeward",
       "ground": {
         "illegal": "We believe the listing breaks the law.",
-        "terms": "The listing breaks Homeward's rules."
+        "terms": "The listing breaks Homeward's rules for listings: {guidelines}"
       }
     },
     "reinstated": {

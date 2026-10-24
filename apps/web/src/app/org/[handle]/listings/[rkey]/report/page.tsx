@@ -28,7 +28,12 @@ export default async function ReportPage({ params }: Props) {
         <Link href={path}>{t('back', { title })}</Link>
       </p>
       <h1 className="mb-4 text-3xl font-bold">{t('title', { title })}</h1>
-      <p className="mb-6">{t('intro', { name: org.profile.displayName })}</p>
+      <p className="mb-6">
+        {t.rich('intro', {
+          name: org.profile.displayName,
+          link: (chunks) => <Link href="/guidelines">{chunks}</Link>,
+        })}
+      </p>
       <ReportForm org={org.handle ?? org.did} rkey={target.view.rkey} path={path} />
     </div>
   );

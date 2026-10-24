@@ -5,6 +5,7 @@ import { mailOrg } from '../admin/admin';
 import { getDb } from '../db';
 import { listingTitle, type ListingRecord } from '../listings/listing-form';
 import { sendMail } from '../mail';
+import { siteOrigin } from '../site';
 
 export function listingReports() {
   return new ListingReportStore(getDb());
@@ -102,13 +103,14 @@ export async function mailDecision(
 /** The statement of reasons to the organisation (DSA Art. 17); its dashboard shows it too. */
 export async function mailStatement(hide: ListingHide, title: string) {
   const t = await getTranslations('ReportEmail');
+  const guidelines = `${await siteOrigin()}/guidelines`;
   await mailOrg(hide.orgDid, async ({ name, dashboard }) => ({
     subject: t('statement.subject', { title }),
     text: t('statement.body', {
       name,
       title,
       statement: hide.statement,
-      ground: t(`statement.ground.${hide.ground}`),
+      ground: t(`statement.ground.${hide.ground}`, { guidelines }),
       dashboard,
     }),
   }));
