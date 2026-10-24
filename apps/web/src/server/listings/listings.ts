@@ -3,12 +3,13 @@ import type { Client } from '@atproto/lex';
 import { PrivateBlobStore } from '@homeward/db';
 import { pet } from '@homeward/lexicons';
 import { getPreferences } from '@/i18n/preferences';
-import { listAnimals, type AnimalSummary } from '../animals/animals';
+import { listAnimals, loadAnimal, type AnimalSummary } from '../animals/animals';
 import { getDb, getKeyring } from '../db';
 import { getGeocoder } from '../geocode';
 import { lookupRecord } from '../onboarding/current-role';
 import { locate } from '../onboarding/place';
 import { getPrivateStore } from '../private-store';
+import { tooYoung } from '../welfare';
 import {
   animalKey,
   mergeListing,
@@ -60,7 +61,10 @@ export type ListingFormState =
 
 export type PublishResult =
   | { ok: true }
-  | { ok: false; reason: 'missing' | 'notReady' | 'conflict' | 'unavailable' | 'photoMissing' };
+  | {
+      ok: false;
+      reason: 'missing' | 'notReady' | 'conflict' | 'unavailable' | 'photoMissing' | 'tooYoung';
+    };
 
 interface StoredListing {
   rkey: string;
@@ -299,6 +303,13 @@ export async function publishDraftListing(
   if (chosen.some((animal) => !animal) || keys.some((key) => key && taken.has(key))) {
     return { ok: false, reason: 'conflict' };
   }
+
+  // Puppies and kittens under the minimum age can't be listed yet (#45).
+  const records = await Promise.all(keys.map((key) => loadAnimal(did, client, key ?? '')));
+  if (records.some((found) => found.kind === 'unavailable'))
+    return { ok: false, reason: 'unavailable' };
+  const found = records.flatMap((record) => (record.kind === 'found' ? [record.record] : []));
+  if (tooYoung(found).length > 0) return { ok: false, reason: 'tooYoung' };
 
   try {
     const drafts = chosen.filter((animal) => animal && !animal.published).map((a) => a!.rkey);

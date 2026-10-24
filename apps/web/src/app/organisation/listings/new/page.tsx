@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ListingForm } from '@/components/ListingForm';
+import { WelfareNote } from '@/components/WelfareNotes';
 import { requireOrganisation } from '@/server/animals/current-org';
 import { editorOptions } from '@/server/listings/editor-options';
 
@@ -28,6 +29,7 @@ export default async function NewListingPage({
         <Link href="/organisation">{t('backToList')}</Link>
       </p>
       <h1 className="mb-6 text-3xl font-bold">{t('newTitle')}</h1>
+      <WelfareNote kind="listing" />
       <ListingForm
         animals={animals}
         countries={countries}

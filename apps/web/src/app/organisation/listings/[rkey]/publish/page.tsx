@@ -10,21 +10,31 @@ import { Button } from '@/components/Button';
 import { CriteriaList } from '@/components/CriteriaList';
 import { CrossPostFields } from '@/components/CrossPostFields';
 import { FormAlert } from '@/components/FormAlert';
+import { BreedWarnings } from '@/components/WelfareNotes';
 import { getPreferences } from '@/i18n/preferences';
 import { formatMoney } from '@/lib/format';
+import { saleWording } from '@/lib/welfare';
 import { listAnimals, loadAnimal, photoCid } from '@/server/animals/animals';
 import { requireOrganisation } from '@/server/animals/current-org';
 import { getDb } from '@/server/db';
 import { animalKey, listingTitle, publishProblems } from '@/server/listings/listing-form';
 import { suggestedPostText } from '@/server/listings/cross-post';
 import { loadListing } from '@/server/listings/listings';
+import { listingBreedWarnings, minAgeWeeks, tooYoung } from '@/server/welfare';
 
 type Props = {
   params: Promise<{ rkey: string }>;
   searchParams: Promise<{ error?: string }>;
 };
 
-const ERRORS = ['missing', 'notReady', 'conflict', 'unavailable', 'photoMissing'] as const;
+const ERRORS = [
+  'missing',
+  'notReady',
+  'conflict',
+  'unavailable',
+  'photoMissing',
+  'tooYoung',
+] as const;
 const POST_ERRORS = ['post-empty', 'post-tooLong'] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -77,6 +87,18 @@ export default async function PublishListingPage({ params, searchParams }: Props
       ? taxonomy(`${group}.${value}` as never)
       : value;
   const problems = publishProblems(record);
+  // Welfare (#45): puppies and kittens too young block publishing; the rest are warnings.
+  const records = animals.flatMap(({ animal }) => (animal ? [animal.record] : []));
+  const young = tooYoung(records);
+  const sale = saleWording([record.title, record.summary, ...records.map((a) => a.story)]);
+  const orgCountry = (org?.record as { location?: { country?: string } } | undefined)?.location
+    ?.country;
+  const breedWarnings = await listingBreedWarnings(records, [
+    record.location?.country ?? orgCountry,
+  ]);
+  const dateOf = (date: Date) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(date);
+  const welfare = await getTranslations('Welfare');
   const fee = record.adoptionFee;
   const amount = fee?.amount && formatMoney(fee.amount.amount, fee.amount.currency, locale);
   const place =
@@ -172,7 +194,25 @@ export default async function PublishListingPage({ params, searchParams }: Props
         <p className="text-muted">{t('publicNote')}</p>
       </section>
 
-      {problems.length > 0 ? (
+      {sale.length > 0 && (
+        <section
+          aria-labelledby="sale-wording"
+          className="mb-8 rounded-md border border-dashed border-unknown-line bg-unknown-soft p-4 text-unknown"
+        >
+          <h2 id="sale-wording" className="mb-1 font-bold">
+            {welfare('saleHeading')}
+          </h2>
+          <p>
+            {welfare.rich('saleBody', {
+              phrases: sale.map((phrase) => `“${phrase}”`).join(', '),
+              link: (chunks) => <Link href="/guidelines">{chunks}</Link>,
+            })}
+          </p>
+        </section>
+      )}
+      <BreedWarnings warnings={breedWarnings} audience="organisation" />
+
+      {problems.length > 0 || young.length > 0 ? (
         <section
           aria-labelledby="not-ready"
           className="rounded-md border border-conflict-line bg-conflict-soft p-4 text-conflict"
@@ -183,6 +223,11 @@ export default async function PublishListingPage({ params, searchParams }: Props
           <ul className="mb-3 list-disc pl-6">
             {problems.map((problem) => (
               <li key={problem}>{problem === 'bonded' ? t('needsBonded') : t('needsFee')}</li>
+            ))}
+            {young.map(({ name, from }) => (
+              <li key={name}>
+                {welfare('tooYoung', { name, date: dateOf(from), weeks: minAgeWeeks() })}
+              </li>
             ))}
           </ul>
           <Link href={`/organisation/listings/${rkey}`}>{t('fixInEditor')}</Link>

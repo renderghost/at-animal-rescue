@@ -8,6 +8,7 @@ import { CriteriaList } from '@/components/CriteriaList';
 import { ExternalLink } from '@/components/ExternalLink';
 import { FitSummary } from '@/components/FitSummary';
 import { OrgFacts } from '@/components/OrgFacts';
+import { BreedWarnings } from '@/components/WelfareNotes';
 import { sortedCountries } from '@/i18n/countries';
 import { getPreferences } from '@/i18n/preferences';
 import { formatMoney } from '@/lib/format';
@@ -21,6 +22,7 @@ import { emailFact } from '@/server/org-page/email-fact';
 import { emailConfirmationOf, orgFacts } from '@/server/org-page/org';
 import { resolveOrg } from '@/server/org-page/resolve';
 import { siteOrigin } from '@/server/site';
+import { listingBreedWarnings, viewerCountries } from '@/server/welfare';
 
 type Props = { params: Promise<{ handle: string; rkey: string }> };
 
@@ -90,6 +92,11 @@ export default async function ListingPage({ params }: Props) {
   const place = listing.location ?? org.profile.location;
   const countryName =
     sortedCountries(language).find(({ code }) => code === place.country)?.name ?? place.country;
+  // Breeds that may be restricted where the animals are or where the visitor is (#45).
+  const breedWarnings = await listingBreedWarnings(
+    animals.map(({ record }) => record),
+    [place.country, ...(await viewerCountries())],
+  );
   const fee = listing.adoptionFee;
   const amount = fee?.amount && formatMoney(fee.amount.amount, fee.amount.currency, locale);
   const adopted = listing.status === 'adopted';
@@ -153,6 +160,8 @@ export default async function ListingPage({ params }: Props) {
         {listing.summary && <p className="mt-4 max-w-prose text-lg">{listing.summary}</p>}
         <FitSummary fit={fit} title={title} name={name} />
       </header>
+
+      <BreedWarnings warnings={breedWarnings} audience="visitor" />
 
       {/* Reading order: getting in touch first, then the animals; on wide screens both side
           panels share the right-hand column, as on the organisation page. */}
