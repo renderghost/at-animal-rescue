@@ -79,6 +79,7 @@ apps/indexer ◄── Jetstream (pet.homeward.* collections) ──► Postgres
 2. **Never store the app password.** Store the access and refresh JWTs encrypted at rest, server-side, keyed to an httpOnly, SameSite=Lax session cookie.
 3. Inspect the token scope and **reject** full-access (non-app-password) logins, with guidance on creating an app password.
 4. Logout deletes the session server-side. Users can also revoke the app password in their PDS settings.
+5. **Sign-in limits (#67):** every sign-in reaches the user's PDS from our server, so failed attempts are limited to 10 per account (by DID, so a handle and its DID share one limit) and 30 per client address (IPv6 by /64) in 15 minutes, counted in Postgres so the limit holds across instances. Only wrong app passwords count against an account; unknown handles count against the address only; outages never count. A blocked account or address is stopped before its PDS is asked, with "please wait N minutes". A successful sign-in clears the account's count. Only keyed hashes of accounts and addresses are stored, and nothing is kept past the window. The client address is read only from the header named in `CLIENT_IP_HEADER`, set behind our own reverse proxy (#47).
 
 ### Public vs private data
 

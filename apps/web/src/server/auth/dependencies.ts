@@ -1,6 +1,8 @@
 import 'server-only';
 import { getHandle, getPds, IdResolver } from '@atproto/identity';
 import { PasswordSession } from '@atproto/lex-password-session';
+import { SignInFailureStore } from '@homeward/db';
+import { getDb, getKeyring } from '../db';
 import { safeFetch } from './fetch';
 import type { LoginDependencies } from './login';
 
@@ -16,4 +18,14 @@ export const loginDependencies: LoginDependencies = {
     },
   },
   createSession: (input) => PasswordSession.login({ ...input, fetch: safeFetch }),
+  // Failed sign-ins per account and address (#67), counted in Postgres across instances.
+  limiter: {
+    blockedUntil: (key) => failures().blockedUntil(key),
+    failed: (key) => failures().failed(key),
+    succeeded: (did) => failures().succeeded(did),
+  },
 };
+
+function failures() {
+  return new SignInFailureStore(getDb(), getKeyring());
+}

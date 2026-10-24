@@ -14,7 +14,10 @@ const passwordErrors = new Set(['invalidCredentials', 'fullAccessPassword']);
 export function SignInForm() {
   const t = useTranslations('SignIn');
   const [state, action, pending] = useActionState(signIn, initialState);
-  const error = state.status === 'error' ? t(`errors.${state.code}`) : undefined;
+  const error =
+    state.status === 'error'
+      ? t(`errors.${state.code}`, { minutes: state.minutes ?? 0 })
+      : undefined;
   const onPassword = state.status === 'error' && passwordErrors.has(state.code);
 
   return (

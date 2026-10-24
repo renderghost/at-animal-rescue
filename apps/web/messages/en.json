@@ -84,7 +84,8 @@
       "invalidCredentials": "That app password doesn't match this account. Check it, or create a new one.",
       "fullAccessPassword": "That looks like your main account password. For your safety, Homeward only accepts app passwords, and we've ended that sign-in. Create an app password in your account settings and use that instead.",
       "accountUnavailable": "This account has been suspended or deactivated on its server.",
-      "serverUnreachable": "We couldn't reach your account's server. Please try again in a moment."
+      "serverUnreachable": "We couldn't reach your account's server. Please try again in a moment.",
+      "tooManyAttempts": "Too many failed sign-ins. Please wait {minutes, plural, one {# minute} other {# minutes}} and try again."
     },
     "newHere": "New to the Atmosphere?",
     "getStarted": "Get started with a free account"
