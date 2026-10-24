@@ -142,7 +142,12 @@ export class IndexStore {
       };
       await tx
         .insert(indexListings)
-        .values({ uri, ...values })
+        // A rebuilt index takes a hidden listing's state from the moderators' decision (#44).
+        .values({
+          uri,
+          ...values,
+          moderation: sql`CASE WHEN EXISTS (SELECT 1 FROM listing_hides h WHERE h.listing_uri = ${uri}) THEN 'hidden' ELSE 'visible' END`,
+        })
         // Edits keep the moderation state, so a listing hidden after a report stays hidden.
         .onConflictDoUpdate({ target: indexListings.uri, set: values });
     });
